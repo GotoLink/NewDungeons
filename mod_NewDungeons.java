@@ -170,9 +170,9 @@ public final class mod_NewDungeons extends BaseMod
             pressurePlatetest = (new ModPressurePlate(pressurePlateID, "stone", EnumMobType.players, Material.rock)).setHardness(0.5F).setStepSound(Block.soundStoneFootstep).setUnlocalizedName("pressurePlate").setTickRandomly(true);        
             ModLoader.registerBlock(pressurePlatetest);
         }
-        modDimTorch = (new ModBlockTorch(dimTorchID)).setHardness(0.0F).setLightValue(0.5F).setStepSound(Block.soundWoodFootstep).setUnlocalizedName("Dim Torch").setTickRandomly(true);
-        modTripWire = (new ModBlockTripWire(tripWireID)).setUnlocalizedName("modtripWire").setTickRandomly(true);
-        modTripWireSource = (ModBlockTripWireSource)(new ModBlockTripWireSource(tripWireSrcID)).setUnlocalizedName("modtripWireSource").setTickRandomly(true);
+        modDimTorch = (new ModBlockTorch(dimTorchID)).setHardness(0.0F).setLightValue(0.5F).setStepSound(Block.soundWoodFootstep).setUnlocalizedName("Dim Torch").setTextureName("torch_on").setTickRandomly(true);
+        modTripWire = (new ModBlockTripWire(tripWireID)).setUnlocalizedName("modtripWire").setTextureName("trip_wire").setTickRandomly(true);
+        modTripWireSource = (ModBlockTripWireSource)(new ModBlockTripWireSource(tripWireSrcID)).setUnlocalizedName("modtripWireSource").setTextureName("trip_wire_source").setTickRandomly(true);
 
         ModLoader.registerBlock(modDimTorch);
         ModLoader.addName(modDimTorch, "Dim Torch");

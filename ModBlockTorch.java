@@ -15,7 +15,6 @@ public class ModBlockTorch extends BlockTorch
     protected ModBlockTorch(int var1)
     {
         super(var1);
-        func_111022_d("torch_on");
     }
 
     @Override
@@ -88,4 +87,10 @@ public class ModBlockTorch extends BlockTorch
 
         super.onNeighborBlockChange(var1, var2, var3, var4, var5);
     }
+
+    /*@SideOnly(Side.CLIENT)
+    public void registerIcons(IconRegister par1IconRegister)
+    {
+        this.blockIcon = par1IconRegister.registerIcon("torch");
+    }*/
 }

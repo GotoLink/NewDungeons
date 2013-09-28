@@ -16,7 +16,6 @@ public class ModBlockTripWire extends BlockTripWire
     protected ModBlockTripWire(int var1)
     {
         super(var1);
-        func_111022_d("trip_wire");
     }
 
     @Override

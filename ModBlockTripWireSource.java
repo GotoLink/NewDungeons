@@ -13,7 +13,6 @@ public class ModBlockTripWireSource extends BlockTripWireSource
     protected ModBlockTripWireSource(int var1)
     {
         super(var1);
-        func_111022_d("trip_wire_source");
     }
 
     @Override
@@ -21,4 +20,5 @@ public class ModBlockTripWireSource extends BlockTripWireSource
     {
         return Block.tripWireSource.idDropped(0, (Random)null, 0);
     }
+    
 }
