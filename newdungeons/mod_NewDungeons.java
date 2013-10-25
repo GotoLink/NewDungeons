@@ -1,6 +1,7 @@
 package newdungeons;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import net.minecraft.block.Block;
@@ -20,23 +21,14 @@ import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.biome.BiomeGenDesert;
-import net.minecraft.world.biome.BiomeGenEnd;
 import net.minecraft.world.biome.BiomeGenForest;
-import net.minecraft.world.biome.BiomeGenHell;
 import net.minecraft.world.biome.BiomeGenJungle;
 import net.minecraft.world.biome.BiomeGenOcean;
 import net.minecraft.world.biome.BiomeGenSwamp;
 import net.minecraft.world.biome.BiomeGenTaiga;
 
 public final class mod_NewDungeons extends BaseMod {
-	int xxx, zzz, yyy;
-	static boolean doing = false;
-	boolean changeingX;
-	int change;
-	public static BiomeGenBase biome;
-	public static boolean vines;
-	public static Block pressurePlatetest, stairsTest, modDimTorch, modBlockTest, modTripWire;
-	public static ModBlockTripWireSource modTripWireSource;
+	public static Block pressurePlatetest, stairsTest, modDimTorch, modBlockTest, modTripWire, modTripWireSource;
 	static ArrayList loot = new ArrayList(), potLoot = new ArrayList(), disLoot = new ArrayList();
 	@MLProp(name = "OmaxSize", info = "Maximum size.", min = 10.0D, max = 200.0D)
 	public static int OmaxSize = 110;
@@ -58,16 +50,17 @@ public final class mod_NewDungeons extends BaseMod {
 	public static int tripWireID = 254;
 	@MLProp(name = "tripWireSrcID", info = "BlockID for custom hook")
 	public static int tripWireSrcID = 255;
-	public int OsizeRedFac;
-	public static int Oheight;
-	public int Ochest, Omine, Ospider, Ospawner, Opillar;
-	public static boolean Odebug, OidCompatibility;
+	@MLProp(name = "biomesID", info = "Biomes allowed to generate in, by ID, separated by comma")
+	public static String biomesID = "1,2,3,4,5,6,12,13,14,15,17,18,19,20,21,22";
+	public static int Oheight = 5;
+	public static boolean Odebug = false, OidCompatibility = false;
+	public static List<Integer> biomes = new ArrayList();
 
 	@Override
 	public void generateSurface(World var1, Random var2, int var3, int var4) {
-		biome = var1.getWorldChunkManager().getBiomeGenAt(var3, var4);
-		if (var1.getWorldInfo().isMapFeaturesEnabled() && !(biome instanceof BiomeGenHell) && !(biome instanceof BiomeGenEnd)) {
-			genDun1(var1, var2, var3, var4);
+		BiomeGenBase biome = var1.getWorldChunkManager().getBiomeGenAt(var3, var4);
+		if (var1.getWorldInfo().isMapFeaturesEnabled() && biomes.contains(biome.biomeID)) {
+			genDun1(var1, var2, var3, var4, biome);
 			genDun5(var1, var2, var3, var4);
 		}
 	}
@@ -84,17 +77,9 @@ public final class mod_NewDungeons extends BaseMod {
 
 	@Override
 	public void load() {
-		this.OsizeRedFac = 2;
-		Oheight = 5;
 		++OminRoomSize;
-		Odebug = false;
-		this.Ochest = 1;
-		this.Omine = 1;
-		this.Ospider = 1;
-		this.Ospawner = 1;
-		this.Opillar = 1;
-		OidCompatibility = false;
-		this.addLoot();
+		addLoot();
+		generateBiomeList();
 		if (!OidCompatibility) {
 			pressurePlatetest = (new ModPressurePlate(pressurePlateID, "stone", EnumMobType.players, Material.rock)).setHardness(0.5F).setStepSound(Block.soundStoneFootstep)
 					.setUnlocalizedName("pressurePlate").setTickRandomly(true);
@@ -103,7 +88,7 @@ public final class mod_NewDungeons extends BaseMod {
 		modDimTorch = (new ModBlockTorch(dimTorchID)).setHardness(0.0F).setLightValue(0.5F).setStepSound(Block.soundWoodFootstep).setUnlocalizedName("Dim Torch").setTextureName("torch_on")
 				.setTickRandomly(true);
 		modTripWire = (new ModBlockTripWire(tripWireID)).setUnlocalizedName("modtripWire").setTextureName("trip_wire").setTickRandomly(true);
-		modTripWireSource = (ModBlockTripWireSource) (new ModBlockTripWireSource(tripWireSrcID)).setUnlocalizedName("modtripWireSource").setTextureName("trip_wire_source").setTickRandomly(true);
+		modTripWireSource = (new ModBlockTripWireSource(tripWireSrcID)).setUnlocalizedName("modtripWireSource").setTextureName("trip_wire_source").setTickRandomly(true);
 		ModLoader.registerBlock(modDimTorch);
 		ModLoader.addName(modDimTorch, "Dim Torch");
 		ModLoader.addShapelessRecipe(new ItemStack(Block.torchWood, 6), new Object[] { Item.coal, modDimTorch });
@@ -138,13 +123,85 @@ public final class mod_NewDungeons extends BaseMod {
 				}
 			}
 			var14 = var6 * var7 / (var5.nextInt(50) + 50);
-			if (makeDun1(var4, var5, var6, var7, var12, (int) var8, var13, (int) var10, var14, biome)) {
+			if (makeDun1(var4, var5, var6, var7, var12, (int) var8, var13, (int) var10, var14, var4.getWorldChunkManager().getBiomeGenAt((int) var8, (int) var10))) {
 				var1.getPlayer().addChatMessage("successfully made a dungeon! look around.");
 			}
 		}
 	}
 
-	private void addLoot() {
+	public static void genDun1(World var0, Random var1, int var2, int var3, BiomeGenBase biome) {
+		if (var1.nextInt(Orareity) == 0) {
+			int var4 = var2;
+			int var5 = var3;
+			int var6 = var1.nextInt(45) + 10;
+			int var7;
+			for (var7 = 0; var7 < 10; ++var7) {
+				var6 = var0.getTopSolidOrLiquidBlock(var4, var5) - (var1.nextInt(30) + 20);
+				if (var6 > 10 && var6 < 55) {
+					break;
+				}
+			}
+			var7 = 1;
+			int var8 = 1;
+			int var9;
+			int var10;
+			int var11;
+			for (var9 = 0; var9 < 100 && (var7 * var8 < OMinSquareBlocks || var7 < 10 || var8 < 10); ++var9) {
+				var10 = var1.nextInt(OmaxSize - OminSize) + OminSize + 1;
+				var11 = var1.nextInt(OmaxSize - OminSize) + OminSize + 1;
+				var7 = var1.nextInt(var10 - OminSize) + OminSize;
+				var8 = var1.nextInt(var11 - OminSize) + OminSize;
+			}
+			var11 = var7 * var8 / (var1.nextInt(50) + 50);
+			if (Odebug) {
+				var6 = 100;
+			}
+			if (var9 < 100) {
+				makeDun1(var0, var1, var7, var8, Oheight, var4, var6, var5, var11, biome);
+			}
+		}
+	}
+
+	public static void genVine(World var0, Random var1, int var2, int var3, int var4, BiomeGenBase var5) {
+		byte var6 = 15;
+		if (var5 instanceof BiomeGenDesert) {
+			var6 = 50;
+		}
+		if (var5 instanceof BiomeGenSwamp) {
+			var6 = 2;
+		}
+		if (var5 instanceof BiomeGenOcean) {
+			var6 = 5;
+		}
+		if (var5 instanceof BiomeGenForest) {
+			var6 = 10;
+		}
+		if (var5 instanceof BiomeGenJungle) {
+			var6 = 2;
+		}
+		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2 - 1, var3, var4) == 0) {
+			setVines(var0, var2 - 1, var3, var4, 8);
+		}
+		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2 + 1, var3, var4) == 0) {
+			setVines(var0, var2 + 1, var3, var4, 2);
+		}
+		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2, var3, var4 - 1) == 0) {
+			setVines(var0, var2, var3, var4 - 1, 1);
+		}
+		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2, var3, var4 + 1) == 0) {
+			setVines(var0, var2, var3, var4 + 1, 4);
+		}
+		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2, var3 - 1, var4) == 0) {
+			setVines(var0, var2, var3 - 1, var4 + 1);
+		}
+	}
+
+	public static boolean isEmpty(World var0, int var1, int var2, int var3) {
+		int var4 = var0.getBlockId(var1, var2, var3);
+		return var4 == 0 || var4 == Block.vine.blockID || var4 == Block.web.blockID || var4 == modDimTorch.blockID;
+	}
+
+	private static void addLoot() {
 		int var1 = 1;
 		int var2 = 1;
 		int var3 = 1;
@@ -310,82 +367,6 @@ public final class mod_NewDungeons extends BaseMod {
 		disLoot.add(new DunLootPotion(Item.itemsList[Item.potion.itemID], 3, 2, 1.0D, 0.0D, 0, 16458));
 	}
 
-	public static void genDun1(World var0, Random var1, int var2, int var3) {
-		if (var1.nextInt(Orareity) == 0) {
-			biome = var0.getWorldChunkManager().getBiomeGenAt(var2, var3);
-			int var4 = var2;
-			int var5 = var3;
-			int var6 = var1.nextInt(45) + 10;
-			int var7;
-			for (var7 = 0; var7 < 10; ++var7) {
-				var6 = var0.getTopSolidOrLiquidBlock(var4, var5) - (var1.nextInt(30) + 20);
-				if (var6 > 10 && var6 < 55) {
-					break;
-				}
-			}
-			var7 = 1;
-			int var8 = 1;
-			int var9;
-			int var10;
-			int var11;
-			for (var9 = 0; var9 < 100 && (var7 * var8 < OMinSquareBlocks || var7 < 10 || var8 < 10); ++var9) {
-				var10 = var1.nextInt(OmaxSize - OminSize) + OminSize + 1;
-				var11 = var1.nextInt(OmaxSize - OminSize) + OminSize + 1;
-				var7 = var1.nextInt(var10 - OminSize) + OminSize;
-				var8 = var1.nextInt(var11 - OminSize) + OminSize;
-			}
-			var10 = Oheight;
-			var11 = var7 * var8 / (var1.nextInt(50) + 50);
-			if (Odebug) {
-				var6 = 100;
-			}
-			vines = !(biome instanceof BiomeGenDesert);
-			if (var9 < 100) {
-				doing = false;
-				makeDun1(var0, var1, var7, var8, var10, var4, var6, var5, var11, biome);
-			}
-		}
-	}
-
-	public static void genVine(World var0, Random var1, int var2, int var3, int var4, BiomeGenBase var5) {
-		byte var6 = 15;
-		if (var5 instanceof BiomeGenDesert) {
-			var6 = 50;
-		}
-		if (var5 instanceof BiomeGenSwamp) {
-			var6 = 2;
-		}
-		if (var5 instanceof BiomeGenOcean) {
-			var6 = 5;
-		}
-		if (var5 instanceof BiomeGenForest) {
-			var6 = 10;
-		}
-		if (var5 instanceof BiomeGenJungle) {
-			var6 = 2;
-		}
-		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2 - 1, var3, var4) == 0) {
-			setVines(var0, var2 - 1, var3, var4, 8);
-		}
-		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2 + 1, var3, var4) == 0) {
-			setVines(var0, var2 + 1, var3, var4, 2);
-		}
-		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2, var3, var4 - 1) == 0) {
-			setVines(var0, var2, var3, var4 - 1, 1);
-		}
-		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2, var3, var4 + 1) == 0) {
-			setVines(var0, var2, var3, var4 + 1, 4);
-		}
-		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2, var3 - 1, var4) == 0) {
-			setVines(var0, var2, var3 - 1, var4 + 1);
-		}
-	}
-
-	public static boolean isEmpty(World var0, int var1, int var2, int var3) {
-		int var4 = var0.getBlockId(var1, var2, var3);
-		return var4 == 0 || var4 == Block.vine.blockID || var4 == Block.web.blockID || var4 == modDimTorch.blockID;
-	}
-
 	private static void genDun5(World var1, Random var2, int var3, int var4) {
 		for (int var5 = 0; var5 < 10; ++var5) {
 			if (var2.nextInt(2) == 0) {
@@ -415,17 +396,26 @@ public final class mod_NewDungeons extends BaseMod {
 		}
 	}
 
-	private static void genStone(World var0, Random var1, int var2, int var3, int var4) {
-		genStone(var0, var1, var2, var3, var4, false);
+	private static void generateBiomeList() {
+		for (String txt : biomesID.split(",")) {
+			try {
+				biomes.add(Integer.parseInt(txt));
+			} catch (NumberFormatException e) {
+			}
+		}
 	}
 
-	private static void genStone(World var0, Random var1, int var2, int var3, int var4, boolean var5) {
+	private static void genStone(World var0, Random var1, BiomeGenBase biome, int var2, int var3, int var4) {
+		genStone(var0, var1, biome, var2, var3, var4, false);
+	}
+
+	private static void genStone(World var0, Random var1, BiomeGenBase biome, int var2, int var3, int var4, boolean var5) {
 		int var8 = Block.stoneBrick.blockID;
 		byte var9 = 0;
 		boolean var10 = false;
 		if (var1.nextInt(10) == 0 && var5) {
 			var0.setBlock(var2, var3, var4, 0);
-			genStone(var0, var1, var2, var3 + 1, var4);
+			genStone(var0, var1, biome, var2, var3 + 1, var4);
 		} else {
 			while (!var10) {
 				int var6 = var1.nextInt(7);
@@ -467,7 +457,7 @@ public final class mod_NewDungeons extends BaseMod {
 		genVine(var0, var1, var2, var3, var4, biome);
 	}
 
-	private static boolean makeDun1(World var0, Random var1, int var2, int var3, int var4, int var5, int var6, int var7, int var8, BiomeGenBase var9) {
+	private static boolean makeDun1(World var0, Random var1, int var2, int var3, int var4, int var5, int var6, int var7, int var8, BiomeGenBase biome) {
 		int var10 = 0;
 		int var11 = 0;
 		int var12 = 0;
@@ -486,13 +476,13 @@ public final class mod_NewDungeons extends BaseMod {
 		}
 		for (var14 = 0; var14 < var2 + 1; ++var14) {
 			for (var15 = 0; var15 < var3 + 1; ++var15) {
-				genStone(var0, var1, var5 + var14, var6, var7 + var15);
+				genStone(var0, var1, biome, var5 + var14, var6, var7 + var15);
 				if (!Odebug) {
-					genStone(var0, var1, var5 + var14, var6 + var4 - 1, var7 + var15, true);
+					genStone(var0, var1, biome, var5 + var14, var6 + var4 - 1, var7 + var15, true);
 				}
 				if (var14 == 0 || var14 == var2 || var15 == 0 || var15 == var3) {
 					for (var16 = 1; var16 < var4 - 1; ++var16) {
-						genStone(var0, var1, var5 + var14, var6 + var16, var7 + var15);
+						genStone(var0, var1, biome, var5 + var14, var6 + var16, var7 + var15);
 					}
 				}
 			}
@@ -532,7 +522,7 @@ public final class mod_NewDungeons extends BaseMod {
 				}
 				if (var19 || var20) {
 					for (var21 = 1; var21 < var4 - 1; ++var21) {
-						genStone(var0, var1, var5 + var16, var6 + var21, var7 + var17);
+						genStone(var0, var1, biome, var5 + var16, var6 + var21, var7 + var17);
 					}
 				}
 				var21 = 1;
@@ -543,13 +533,13 @@ public final class mod_NewDungeons extends BaseMod {
 					for (var25 = 1; var25 < var2 && var0.getBlockMaterial(var5 + var16 + var25, var6 + 1, var7 + var17) != Material.rock; ++var25) {
 						++var21;
 						for (var26 = 1; var26 < var4 - 1; ++var26) {
-							genStone(var0, var1, var5 + var16 + var25, var6 + var26, var7 + var17);
+							genStone(var0, var1, biome, var5 + var16 + var25, var6 + var26, var7 + var17);
 						}
 					}
 					for (var25 = 1; var25 < var2 && var0.getBlockMaterial(var5 + var16 - var25, var6 + 1, var7 + var17) != Material.rock; ++var25) {
 						++var22;
 						for (var26 = 1; var26 < var4 - 1; ++var26) {
-							genStone(var0, var1, var5 + var16 - var25, var6 + var26, var7 + var17);
+							genStone(var0, var1, biome, var5 + var16 - var25, var6 + var26, var7 + var17);
 						}
 					}
 				}
@@ -557,13 +547,13 @@ public final class mod_NewDungeons extends BaseMod {
 					for (var25 = 1; var25 < var3 && var0.getBlockMaterial(var5 + var16, var6 + 1, var7 + var17 + var25) != Material.rock; ++var25) {
 						++var23;
 						for (var26 = 1; var26 < var4 - 1; ++var26) {
-							genStone(var0, var1, var5 + var16, var6 + var26, var7 + var17 + var25);
+							genStone(var0, var1, biome, var5 + var16, var6 + var26, var7 + var17 + var25);
 						}
 					}
 					for (var25 = 1; var25 < var3 && var0.getBlockMaterial(var5 + var16, var6 + 1, var7 + var17 - var25) != Material.rock; ++var25) {
 						++var24;
 						for (var26 = 1; var26 < var4 - 1; ++var26) {
-							genStone(var0, var1, var5 + var16, var6 + var26, var7 + var17 - var25);
+							genStone(var0, var1, biome, var5 + var16, var6 + var26, var7 + var17 - var25);
 						}
 					}
 				}
@@ -758,7 +748,7 @@ public final class mod_NewDungeons extends BaseMod {
 					for (var48 = 0; var48 < var21 * 4; ++var48) {
 						var0.setBlock(var5 + var18 + var23, var6 + 1 + var25, var7 + var40 + var24, BlockHalfSlab.stoneSingleSlab.blockID, var43, 3);
 						if (var52) {
-							genStone(var0, var1, var5 + var18, var6 + 1 + var25, var7 + var40);
+							genStone(var0, var1, biome, var5 + var18, var6 + 1 + var25, var7 + var40);
 						}
 						if (var51) {
 							var23 += var27;
@@ -1027,7 +1017,7 @@ public final class mod_NewDungeons extends BaseMod {
 							var25 = var1.nextInt(3);
 							for (var26 = 0; var26 < var25; ++var26) {
 								var0.setBlock(var5 + var41 + var23, var6 + 1 + var26, var7 + var21 + var24, Block.bookShelf.blockID);
-								genVine(var0, var1, var5 + var41 + var23, var6 + 1 + var26, var7 + var21 + var24, var9);
+								genVine(var0, var1, var5 + var41 + var23, var6 + 1 + var26, var7 + var21 + var24, biome);
 							}
 						}
 					}
@@ -1057,7 +1047,7 @@ public final class mod_NewDungeons extends BaseMod {
 				}
 				if (var44) {
 					for (var23 = 1; var23 < var4 - 1; ++var23) {
-						genStone(var0, var1, var5 + var41, var6 + var23, var7 + var21);
+						genStone(var0, var1, biome, var5 + var41, var6 + var23, var7 + var21);
 					}
 					for (var23 = -1; var23 < 2; ++var23) {
 						for (var24 = -1; var24 < 2; ++var24) {
@@ -1109,19 +1099,19 @@ public final class mod_NewDungeons extends BaseMod {
 			}
 		}
 		byte var47 = 2;
-		if (var9 instanceof BiomeGenDesert) {
+		if (biome instanceof BiomeGenDesert) {
 			var47 = 8;
 		}
-		if (var9 instanceof BiomeGenSwamp) {
+		if (biome instanceof BiomeGenSwamp) {
 			var47 = 1;
 		}
-		if (var9 instanceof BiomeGenOcean) {
+		if (biome instanceof BiomeGenOcean) {
 			var47 = 4;
 		}
-		if (var9 instanceof BiomeGenTaiga) {
+		if (biome instanceof BiomeGenTaiga) {
 			var47 = 6;
 		}
-		if (var9 instanceof BiomeGenJungle) {
+		if (biome instanceof BiomeGenJungle) {
 			var47 = 0;
 		}
 		var41 = var8 / 2;
@@ -1235,14 +1225,11 @@ public final class mod_NewDungeons extends BaseMod {
 					}
 				}
 				if (var50 && var26 + var27 > 3) {
-					for (var28 = 0; var28 < var26; ++var28) {
-						var0.setBlock(var5 + var22, var6 + 1, var7 + var23 + var28, modTripWire.blockID);
+					var0.setBlock(var5 + var22, var6 + 1, var7 + var23 + var26, modTripWireSource.blockID, 2, 2);
+					var0.setBlock(var5 + var22, var6 + 1, var7 + var23 - var27, modTripWireSource.blockID, 0, 2);
+					for (var28 = -var27 + 1; var28 < var26; ++var28) {
+						var0.setBlock(var5 + var22, var6 + 1, var7 + var23 + var28, modTripWire.blockID, 4, 2);
 					}
-					for (var28 = 0; var28 < var27; ++var28) {
-						var0.setBlock(var5 + var22, var6 + 1, var7 + var23 - var28, modTripWire.blockID);
-					}
-					var0.setBlock(var5 + var22, var6 + 1, var7 + var23 + var26, modTripWireSource.blockID, 2, 3);
-					var0.setBlock(var5 + var22, var6 + 1, var7 + var23 - var27, modTripWireSource.blockID);
 					if (var1.nextBoolean()) {
 						var0.setBlock(var5 + var22, var6 + 2, var7 + var23 - var27 - 1, Block.dispenser.blockID);
 						var0.setBlockMetadataWithNotify(var5 + var22, var6 + 2, var7 + var23 - var27 - 1, 3, 3);
@@ -1308,17 +1295,12 @@ public final class mod_NewDungeons extends BaseMod {
 						}
 					}
 				}
-				//System.out.println(var26);
-				//System.out.println(var27);
 				if (var50 && var26 + var27 > 3) {
-					for (var28 = 0; var28 < var26; ++var28) {
-						var0.setBlock(var5 + var22 + var28, var6 + 1, var7 + var23, modTripWire.blockID);
+					var0.setBlock(var5 + var22 + var26, var6 + 1, var7 + var23, modTripWireSource.blockID, 1, 2);
+					var0.setBlock(var5 + var22 - var27, var6 + 1, var7 + var23, modTripWireSource.blockID, 3, 2);
+					for (var28 = -var27 + 1; var28 < var26; ++var28) {
+						var0.setBlock(var5 + var22 + var28, var6 + 1, var7 + var23, modTripWire.blockID, 4, 2);
 					}
-					for (var28 = 0; var28 < var27; ++var28) {
-						var0.setBlock(var5 + var22 - var28, var6 + 1, var7 + var23, modTripWire.blockID);
-					}
-					var0.setBlock(var5 + var22 + var26, var6 + 1, var7 + var23, modTripWireSource.blockID, 1, 3);
-					var0.setBlock(var5 + var22 - var27, var6 + 1, var7 + var23, modTripWireSource.blockID, 3, 3);
 					if (var1.nextBoolean()) {
 						var0.setBlock(var5 + var22 - var27 - 1, var6 + 2, var7 + var23, Block.dispenser.blockID);
 						var0.setBlockMetadataWithNotify(var5 + var22 - var27 - 1, var6 + 2, var7 + var23, 5, 3);
@@ -1382,7 +1364,7 @@ public final class mod_NewDungeons extends BaseMod {
 									;
 								}
 							} else {
-								genStone(var0, var1, var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27);
+								genStone(var0, var1, biome, var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27);
 							}
 							if (var12 + 1 - var28 < var6 + var4) {
 								break;
@@ -1485,7 +1467,7 @@ public final class mod_NewDungeons extends BaseMod {
 	private static void setVines(World var0, int x, int y, int z) {
 		var0.setBlock(x, y, z, Block.vine.blockID);
 		int var5 = new Random().nextInt(5) + 1;
-		while (var5>0) {
+		while (var5 > 0) {
 			--y;
 			if (var0.getBlockId(x, y, z) != 0) {
 				return;
@@ -1498,7 +1480,7 @@ public final class mod_NewDungeons extends BaseMod {
 	private static void setVines(World var0, int x, int y, int z, int meta) {
 		var0.setBlock(x, y, z, Block.vine.blockID, meta, 3);
 		int var6 = new Random().nextInt(5) + 1;
-		while (var6>0) {
+		while (var6 > 0) {
 			--y;
 			if (var0.getBlockId(x, y, z) != 0) {
 				return;
