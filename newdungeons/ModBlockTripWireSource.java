@@ -40,7 +40,7 @@ public class ModBlockTripWireSource extends BlockTripWireSource {
 				}
 				break;
 			}
-			if (j3 != Block.tripWire.blockID && j3 != mod_NewDungeons.modTripWire.blockID && i3 != par8) {
+			if (j3 != Block.tripWire.blockID && j3 != NewDungeons.modTripWire.blockID && i3 != par8) {
 				aint[i3] = -1;
 				flag3 = false;
 			} else {

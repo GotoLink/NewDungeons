@@ -30,7 +30,7 @@ public class ModBlockTripWire extends BlockTripWire {
 					int k1 = par2 + Direction.offsetX[i1] * j1;
 					int l1 = par4 + Direction.offsetZ[i1] * j1;
 					int i2 = par1World.getBlockId(k1, par3, l1);
-					if (i2 == Block.tripWireSource.blockID || i2 == mod_NewDungeons.modTripWireSource.blockID) {
+					if (i2 == Block.tripWireSource.blockID || i2 == NewDungeons.modTripWireSource.blockID) {
 						int j2 = par1World.getBlockMetadata(k1, par3, l1) & 3;
 						if (j2 == Direction.rotateOpposite[i1]) {
 							((BlockTripWireSource) Block.blocksList[i2]).func_72143_a(par1World, k1, par3, l1, i2, par1World.getBlockMetadata(k1, par3, l1), true, j1, par5);

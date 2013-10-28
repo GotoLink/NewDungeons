@@ -1,8 +1,9 @@
 package newdungeons;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockHalfSlab;
@@ -12,9 +13,8 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.NetServerHandler;
-import net.minecraft.src.BaseMod;
-import net.minecraft.src.MLProp;
-import net.minecraft.src.ModLoader;
+import net.minecraft.network.packet.NetHandler;
+import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.tileentity.TileEntityDispenser;
 import net.minecraft.tileentity.TileEntityMobSpawner;
@@ -26,77 +26,102 @@ import net.minecraft.world.biome.BiomeGenJungle;
 import net.minecraft.world.biome.BiomeGenOcean;
 import net.minecraft.world.biome.BiomeGenSwamp;
 import net.minecraft.world.biome.BiomeGenTaiga;
+import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraftforge.common.BiomeDictionary;
+import net.minecraftforge.common.Configuration;
+import cpw.mods.fml.common.IWorldGenerator;
+import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.Mod.EventHandler;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.network.IChatListener;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.common.registry.LanguageRegistry;
 
-public final class mod_NewDungeons extends BaseMod {
-	public static Block pressurePlatetest, stairsTest, modDimTorch, modBlockTest, modTripWire, modTripWireSource;
+@Mod(modid = "newdungeons", name = "New Dungeons", version = "1.6.4")
+public final class NewDungeons implements IWorldGenerator, IChatListener {
+	public static Block pressurePlatetest, modDimTorch, modTripWire, modTripWireSource;
 	static ArrayList loot = new ArrayList(), potLoot = new ArrayList(), disLoot = new ArrayList();
-	@MLProp(name = "OmaxSize", info = "Maximum size.", min = 10.0D, max = 200.0D)
 	public static int OmaxSize = 110;
-	@MLProp(name = "OminSize", info = "Minimum size.", min = 10.0D, max = 200.0D)
 	public static int OminSize = 10;
-	@MLProp(name = "OminRoomSize", info = "Minimum room size.", min = 1.0D, max = 50.0D)
 	public static int OminRoomSize = 2;
-	@MLProp(name = "Orareity", info = "Dungeon rarity (higher = more rare).", min = 10.0D, max = 100000.0D)
 	public static int Orareity = 500;
-	@MLProp(name = "OMinSquareBlocks", info = "Minimum size in square blocks.", min = 100.0D, max = 10000.0D)
 	public static int OMinSquareBlocks = 500;
-	@MLProp(name = "OadditionalItems", info = "itemId rarity value maxStack minStack minDanger enchProb maxEnchant damigeVal")
 	public static String OadditionalItems = "";
-	@MLProp(name = "pressurePlateID", info = "Block ID for custom pressure plate")
-	public static int pressurePlateID = 252;
-	@MLProp(name = "dimTorchID", info = "Block ID for custom torch")
-	public static int dimTorchID = 253;
-	@MLProp(name = "tripWireID", info = "BlockID for custom tripwire")
-	public static int tripWireID = 254;
-	@MLProp(name = "tripWireSrcID", info = "BlockID for custom hook")
-	public static int tripWireSrcID = 255;
-	@MLProp(name = "biomesID", info = "Biomes allowed to generate in, by ID, separated by comma")
-	public static String biomesID = "1,2,3,4,5,6,12,13,14,15,17,18,19,20,21,22";
+	public static int pressurePlateID = 2152;
+	public static int dimTorchID = 2153;
+	public static int tripWireID = 2154;
+	public static int tripWireSrcID = 2155;
+	public static String biomesID = "ALL,-WATER";
 	public static int Oheight = 5;
-	public static boolean Odebug = false, OidCompatibility = false;
-	public static List<Integer> biomes = new ArrayList();
+	public static final boolean Odebug = false, OidCompatibility = false;
+	public static Set<Integer> biomes = new HashSet();
+	public static String dimensionsID = "0";
+	public static Set<Integer> dimensions = new HashSet();
 
 	@Override
-	public void generateSurface(World var1, Random var2, int var3, int var4) {
-		BiomeGenBase biome = var1.getWorldChunkManager().getBiomeGenAt(var3, var4);
-		if (var1.getWorldInfo().isMapFeaturesEnabled() && biomes.contains(biome.biomeID)) {
-			genDun1(var1, var2, var3, var4, biome);
-			genDun5(var1, var2, var3, var4);
+	public Packet3Chat clientChat(NetHandler handler, Packet3Chat message) {
+		return message;
+	}
+
+	@Override
+	public void generate(Random random, int chunkX, int chunkZ, World world, IChunkProvider chunkGenerator, IChunkProvider chunkProvider) {
+		if (dimensions.contains(world.provider.dimensionId)) {
+			generateSurface(world, random, chunkX << 4, chunkZ << 4);
 		}
 	}
 
-	@Override
-	public String getName() {
-		return "NewDungeons";
-	}
-
-	@Override
-	public String getVersion() {
-		return "1.6.2";
-	}
-
-	@Override
-	public void load() {
+	@EventHandler
+	public void load(FMLInitializationEvent event) {
 		++OminRoomSize;
 		addLoot();
 		generateBiomeList();
+		generateDimensionList();
 		if (!OidCompatibility) {
 			pressurePlatetest = (new ModPressurePlate(pressurePlateID, "stone", EnumMobType.players, Material.rock)).setHardness(0.5F).setStepSound(Block.soundStoneFootstep)
-					.setUnlocalizedName("pressurePlate").setTickRandomly(true);
-			ModLoader.registerBlock(pressurePlatetest);
+					.setUnlocalizedName("pressurePlatePlayer").setTickRandomly(true);
+			GameRegistry.registerBlock(pressurePlatetest, "PressurePlatePlayer");
 		}
 		modDimTorch = (new ModBlockTorch(dimTorchID)).setHardness(0.0F).setLightValue(0.5F).setStepSound(Block.soundWoodFootstep).setUnlocalizedName("Dim Torch").setTextureName("torch_on")
 				.setTickRandomly(true);
-		modTripWire = (new ModBlockTripWire(tripWireID)).setUnlocalizedName("modtripWire").setTextureName("trip_wire").setTickRandomly(true);
-		modTripWireSource = (new ModBlockTripWireSource(tripWireSrcID)).setUnlocalizedName("modtripWireSource").setTextureName("trip_wire_source").setTickRandomly(true);
-		ModLoader.registerBlock(modDimTorch);
-		ModLoader.addName(modDimTorch, "Dim Torch");
-		ModLoader.addShapelessRecipe(new ItemStack(Block.torchWood, 6), new Object[] { Item.coal, modDimTorch });
-		ModLoader.addShapelessRecipe(new ItemStack(Block.torchWood, 6), new Object[] { Item.flint, modDimTorch });
-		ModLoader.addShapelessRecipe(new ItemStack(Block.torchWood, 8), new Object[] { Item.coal, Item.stick, modDimTorch });
+		modTripWire = (new ModBlockTripWire(tripWireID)).setUnlocalizedName("tripWirePlayer").setTextureName("trip_wire").setTickRandomly(true);
+		modTripWireSource = (new ModBlockTripWireSource(tripWireSrcID)).setUnlocalizedName("tripWireSourcePlayer").setTextureName("trip_wire_source").setTickRandomly(true);
+		GameRegistry.registerBlock(modTripWire, "TripWirePlayer");
+		GameRegistry.registerBlock(modTripWireSource, "WireHookPlayer");
+		GameRegistry.registerBlock(modDimTorch, "DimTorch");
+		LanguageRegistry.addName(modDimTorch, "Dim Torch");
+		GameRegistry.addShapelessRecipe(new ItemStack(Block.torchWood, 6), Item.coal, modDimTorch);
+		GameRegistry.addShapelessRecipe(new ItemStack(Block.torchWood, 6), Item.flint, modDimTorch);
+		GameRegistry.addShapelessRecipe(new ItemStack(Block.torchWood, 8), Item.coal, Item.stick, modDimTorch);
+		GameRegistry.registerWorldGenerator(this);
+		NetworkRegistry.instance().registerChatListener(this);
+	}
+
+	@EventHandler
+	public void preLoad(FMLPreInitializationEvent event) {
+		Configuration config = new Configuration(event.getSuggestedConfigurationFile());
+		OmaxSize = config.get("Generation", "Max size", OmaxSize).getInt();
+		OminSize = config.get("Generation", "Min size", OminSize).getInt();
+		OminRoomSize = config.get("Generation", "Room min size", OminRoomSize).getInt();
+		Orareity = config.get("Generation", "Dungeon rarity", Orareity, "higher=rarer").getInt();
+		OMinSquareBlocks = config.get("Generation", "Min size in square blocks", OMinSquareBlocks).getInt();
+		biomesID = config.get("Generation", "Biomes allowed", biomesID).getString();
+		dimensionsID = config.get("Generation", "Dimensions allowed", dimensionsID).getString();
+		OadditionalItems = config.get("Generation", "Add chest items", OadditionalItems, "Arguments: itemId rarity value maxStack minStack minDanger enchProb maxEnchant damageVal").getString();
+		pressurePlateID = config.getBlock("Player sensitive pressure plate", pressurePlateID).getInt();
+		dimTorchID = config.getBlock("Dim torch", dimTorchID).getInt();
+		tripWireID = config.getBlock("Player sensitive trip wire", tripWireID).getInt();
+		tripWireSrcID = config.getBlock("Player sensitive wire hook", tripWireSrcID).getInt();
+		config.save();
 	}
 
 	@Override
+	public Packet3Chat serverChat(NetHandler handler, Packet3Chat message) {
+		serverChat((NetServerHandler) handler, message.message);
+		return message;
+	}
+
 	public void serverChat(NetServerHandler var1, String var2) {
 		String[] var3 = var2.split(" ");
 		if (var3[0].equals("/makeDun") && var3.length == 3) {
@@ -162,6 +187,14 @@ public final class mod_NewDungeons extends BaseMod {
 		}
 	}
 
+	public static void generateSurface(World var1, Random var2, int var3, int var4) {
+		BiomeGenBase biome = var1.getWorldChunkManager().getBiomeGenAt(var3, var4);
+		if (var1.getWorldInfo().isMapFeaturesEnabled() && biomes.contains(biome.biomeID)) {
+			genDun1(var1, var2, var3, var4, biome);
+			genDun5(var1, var2, var3, var4);
+		}
+	}
+
 	public static void genVine(World var0, Random var1, int var2, int var3, int var4, BiomeGenBase var5) {
 		byte var6 = 15;
 		if (var5 instanceof BiomeGenDesert) {
@@ -211,7 +244,7 @@ public final class mod_NewDungeons extends BaseMod {
 		int var7 = 1;
 		double var8 = 1.0D;
 		double var10 = 1.0D;
-		if (OadditionalItems != "") {
+		if (!OadditionalItems.equals("")) {
 			String[] var12 = OadditionalItems.split("_");
 			for (int var13 = 0; var13 < var12.length; ++var13) {
 				String[] var14 = var12[var13].split("-");
@@ -278,7 +311,7 @@ public final class mod_NewDungeons extends BaseMod {
 						var7 = Integer.parseInt(var14[8]);
 					}
 				} catch (NumberFormatException var18) {
-					System.err.println("mod_GenTest error: " + var18.toString());
+					System.err.println("New Dungeons error: " + var18.toString());
 				}
 				Block var15 = Block.blocksList[var1];
 				loot.add(new DunLootItem(var15, var2, var3, var8, var10, var4, var5, var6, var7, var7));
@@ -398,9 +431,36 @@ public final class mod_NewDungeons extends BaseMod {
 
 	private static void generateBiomeList() {
 		for (String txt : biomesID.split(",")) {
+			if (txt.equalsIgnoreCase("ALL")) {
+				for (int i = 0; i < BiomeGenBase.biomeList.length; i++) {
+					biomes.add(i);
+				}
+			} else if (txt.startsWith("-")) {
+				txt = txt.substring(1).trim();
+				try {
+					biomes.remove(Integer.parseInt(txt));
+				} catch (NumberFormatException e) {
+					for (BiomeGenBase biome : BiomeDictionary.getBiomesForType(BiomeDictionary.Type.valueOf(txt.toUpperCase()))) {
+						biomes.remove(biome.biomeID);
+					}
+				}
+			} else {
+				try {
+					biomes.add(Integer.parseInt(txt));
+				} catch (NumberFormatException e) {
+					for (BiomeGenBase biome : BiomeDictionary.getBiomesForType(BiomeDictionary.Type.valueOf(txt.toUpperCase()))) {
+						biomes.add(biome.biomeID);
+					}
+				}
+			}
+		}
+	}
+
+	private static void generateDimensionList() {
+		for (String txt : dimensionsID.split(",")) {
 			try {
-				biomes.add(Integer.parseInt(txt));
-			} catch (NumberFormatException e) {
+				dimensions.add(Integer.parseInt(txt.trim()));
+			} catch (NumberFormatException n) {
 			}
 		}
 	}
