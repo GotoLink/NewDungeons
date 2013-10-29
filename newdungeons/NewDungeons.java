@@ -512,7 +512,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 					var10 = true;
 				}
 			}
-			var0.setBlock(var2, var3, var4, var8, var9, 3);
+			var0.setBlock(var2, var3, var4, var8, var9, 2);
 		}
 		genVine(var0, var1, var2, var3, var4, biome);
 	}
@@ -806,7 +806,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						}
 					}
 					for (var48 = 0; var48 < var21 * 4; ++var48) {
-						var0.setBlock(var5 + var18 + var23, var6 + 1 + var25, var7 + var40 + var24, BlockHalfSlab.stoneSingleSlab.blockID, var43, 3);
+						var0.setBlock(var5 + var18 + var23, var6 + 1 + var25, var7 + var40 + var24, BlockHalfSlab.stoneSingleSlab.blockID, var43, 2);
 						if (var52) {
 							genStone(var0, var1, biome, var5 + var18, var6 + 1 + var25, var7 + var40);
 						}
@@ -1221,7 +1221,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 					if (!OidCompatibility) {
 						var0.setBlock(var5 + var22, var6 + 1, var7 + var23, pressurePlatetest.blockID);
 					} else {
-						var0.setBlock(var5 + var22, var6 + 1, var7 + var23, Block.pressurePlateStone.blockID, -1, 3);
+						var0.setBlock(var5 + var22, var6 + 1, var7 + var23, Block.pressurePlateStone.blockID, -1, 2);
 					}
 					if (var1.nextInt(3) != 1) {
 						var0.setBlock(var5 + var22, var6, var7 + var23, Block.gravel.blockID);
@@ -1538,14 +1538,14 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 	}
 
 	private static void setVines(World var0, int x, int y, int z, int meta) {
-		var0.setBlock(x, y, z, Block.vine.blockID, meta, 3);
+		var0.setBlock(x, y, z, Block.vine.blockID, meta, 2);
 		int var6 = new Random().nextInt(5) + 1;
 		while (var6 > 0) {
 			--y;
 			if (var0.getBlockId(x, y, z) != 0) {
 				return;
 			}
-			var0.setBlock(x, y, z, Block.vine.blockID, meta, 3);
+			var0.setBlock(x, y, z, Block.vine.blockID, meta, 2);
 			--var6;
 		}
 	}
