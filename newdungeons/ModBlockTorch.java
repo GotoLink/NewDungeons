@@ -4,7 +4,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockTorch;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 public class ModBlockTorch extends BlockTorch {
@@ -13,17 +12,27 @@ public class ModBlockTorch extends BlockTorch {
 	}
 
 	@Override
-	public void onBlockClicked(World var1, int var2, int var3, int var4, EntityPlayer var5) {
-		//System.out.println("clicky click");
-		if (var5.getItemInUse() == new ItemStack(Item.flintAndSteel)) {
+	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int par6, float par7, float par8, float par9) {
+		onInteract(world, x, y, z, player);
+		return false;
+	}
+
+	@Override
+	public void onBlockClicked(World world, int x, int y, int z, EntityPlayer player) {
+		onInteract(world, x, y, z, player);
+	}
+
+	@Override
+	public void onNeighborBlockChange(World var1, int var2, int var3, int var4, int var5) {
+		if (var5 == Block.fire.blockID) {
 			this.burn(var1, var2, var3, var4);
 		}
+		super.onNeighborBlockChange(var1, var2, var3, var4, var5);
 	}
 
 	private void burn(World var1, int var2, int var3, int var4) {
 		var1.setBlock(var2, var3, var4, Block.torchWood.blockID, var1.getBlockMetadata(var2, var3, var4), 3);
-		var1.playSoundEffect(var2 + 0.5F, var3 + 0.5F, var4 + 0.5F, "random.fizz", 0.5F,
-				2.6F + (var1.rand.nextFloat() - var1.rand.nextFloat()) * 0.8F);
+		var1.playSoundEffect(var2 + 0.5F, var3 + 0.5F, var4 + 0.5F, "random.fizz", 0.5F, 2.6F + (var1.rand.nextFloat() - var1.rand.nextFloat()) * 0.8F);
 		int var5 = var1.getBlockMetadata(var2, var3, var4);
 		double var6 = var2 + 0.5F;
 		double var8 = var3 + 0.7F;
@@ -54,16 +63,9 @@ public class ModBlockTorch extends BlockTorch {
 		}
 	}
 
-	@Override
-	public void onNeighborBlockChange(World var1, int var2, int var3, int var4, int var5) {
-		if (var5 == Block.fire.blockID) {
-			this.burn(var1, var2, var3, var4);
+	private void onInteract(World world, int x, int y, int z, EntityPlayer player) {
+		if (player.getCurrentEquippedItem() != null && player.getCurrentEquippedItem().itemID == Item.flintAndSteel.itemID) {
+			this.burn(world, x, y, z);
 		}
-		super.onNeighborBlockChange(var1, var2, var3, var4, var5);
 	}
-	/*
-	 * @SideOnly(Side.CLIENT) public void registerIcons(IconRegister
-	 * par1IconRegister) { this.blockIcon =
-	 * par1IconRegister.registerIcon("torch"); }
-	 */
 }

@@ -79,14 +79,14 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 		generateBiomeList();
 		generateDimensionList();
 		if (!OidCompatibility) {
-			pressurePlatetest = (new ModPressurePlate(pressurePlateID, "stone", EnumMobType.players, Material.rock)).setHardness(0.5F).setStepSound(Block.soundStoneFootstep)
+			pressurePlatetest = new ModPressurePlate(pressurePlateID, "stone", EnumMobType.players, Material.rock).setHardness(0.5F).setStepSound(Block.soundStoneFootstep)
 					.setUnlocalizedName("pressurePlatePlayer").setTickRandomly(true);
 			GameRegistry.registerBlock(pressurePlatetest, "PressurePlatePlayer");
 		}
-		modDimTorch = (new ModBlockTorch(dimTorchID)).setHardness(0.0F).setLightValue(0.5F).setStepSound(Block.soundWoodFootstep).setUnlocalizedName("Dim Torch").setTextureName("torch_on")
+		modDimTorch = new ModBlockTorch(dimTorchID).setHardness(0.0F).setLightValue(0.5F).setStepSound(Block.soundWoodFootstep).setUnlocalizedName("dimTorch").setTextureName("torch_on")
 				.setTickRandomly(true);
-		modTripWire = (new ModBlockTripWire(tripWireID)).setUnlocalizedName("tripWirePlayer").setTextureName("trip_wire").setTickRandomly(true);
-		modTripWireSource = (new ModBlockTripWireSource(tripWireSrcID)).setUnlocalizedName("tripWireSourcePlayer").setTextureName("trip_wire_source").setTickRandomly(true);
+		modTripWire = new ModBlockTripWire(tripWireID).setUnlocalizedName("tripWirePlayer").setTextureName("trip_wire").setTickRandomly(true);
+		modTripWireSource = new ModBlockTripWireSource(tripWireSrcID).setUnlocalizedName("tripWireSourcePlayer").setTextureName("trip_wire_source").setTickRandomly(true);
 		GameRegistry.registerBlock(modTripWire, "TripWirePlayer");
 		GameRegistry.registerBlock(modTripWireSource, "WireHookPlayer");
 		GameRegistry.registerBlock(modDimTorch, "DimTorch");
