@@ -408,7 +408,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 				int var8;
 				do {
 					do {
-						var8 = var2.nextInt(128);
+						var8 = var2.nextInt(126) + 2;
 						try {
 							var1.getTopSolidOrLiquidBlock(var6, var7);
 						} catch (Exception var12) {
@@ -837,12 +837,14 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 					var48 = var1.nextInt(9) - 4;
 					var49 = var1.nextInt(9) - 4;
 					var58 = var0.getTopSolidOrLiquidBlock(var5 + var18 + var48, var7 + var40 + var49);
-					var0.setBlock(var5 + var18 + var48, var58, var7 + var40 + var49, Block.mobSpawner.blockID);
-					TileEntityMobSpawner var57 = (TileEntityMobSpawner) var0.getBlockTileEntity(var5 + var18 + var48, var58, var7 + var40 + var49);
-					if (var57 != null) {
-						var57.getSpawnerLogic().setMobID(pickMobSpawner(var1));
-					} else {
-						System.err.println("Failed to fetch mob spawner entity at (" + (var5 + var18 + var48) + ", " + var58 + ", " + (var7 + var40 + var49) + ")");
+					if (var58 > 0) {
+						var0.setBlock(var5 + var18 + var48, var58, var7 + var40 + var49, Block.mobSpawner.blockID);
+						TileEntityMobSpawner var57 = (TileEntityMobSpawner) var0.getBlockTileEntity(var5 + var18 + var48, var58, var7 + var40 + var49);
+						if (var57 != null) {
+							var57.getSpawnerLogic().setMobID(pickMobSpawner(var1));
+						} else {
+							System.err.println("Failed to fetch mob spawner entity at (" + (var5 + var18 + var48) + ", " + var58 + ", " + (var7 + var40 + var49) + ")");
+						}
 					}
 				}
 				break;
@@ -1142,16 +1144,18 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 				}
 				if (var44) {
 					var13 += 10;
-					var0.setBlock(var5 + var41, var6 + 1, var7 + var21, Block.mobSpawner.blockID);
-					TileEntityMobSpawner var59 = (TileEntityMobSpawner) var0.getBlockTileEntity(var5 + var41, var6 + 1, var7 + var21);
-					if (var59 != null) {
-						String var60 = pickMobSpawner(var1);
-						var59.getSpawnerLogic().setMobID(var60);
-						if (var60 == "Creeper") {
-							var13 += 10;
+					if (var6 + 1 > 0) {
+						var0.setBlock(var5 + var41, var6 + 1, var7 + var21, Block.mobSpawner.blockID);
+						TileEntityMobSpawner var59 = (TileEntityMobSpawner) var0.getBlockTileEntity(var5 + var41, var6 + 1, var7 + var21);
+						if (var59 != null) {
+							String var60 = pickMobSpawner(var1);
+							var59.getSpawnerLogic().setMobID(var60);
+							if (var60 == "Creeper") {
+								var13 += 10;
+							}
+						} else {
+							System.err.println("Failed to fetch mob spawner entity at (" + (var5 + var41) + ", " + (var6 + 1) + ", " + (var7 + var21) + ")");
 						}
-					} else {
-						System.err.println("Failed to fetch mob spawner entity at (" + (var5 + var41) + ", " + (var6 + 1) + ", " + (var7 + var21) + ")");
 					}
 				}
 				++var40;
