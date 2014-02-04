@@ -3,35 +3,36 @@ package newdungeons;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockTorch;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.world.World;
 
 public class ModBlockTorch extends BlockTorch {
-	protected ModBlockTorch(int var1) {
-		super(var1);
+	protected ModBlockTorch() {
+		super();
 	}
 
 	@Override
-	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int par6, float par7, float par8, float par9) {
+	public boolean func_149727_a(World world, int x, int y, int z, EntityPlayer player, int par6, float par7, float par8, float par9) {
 		onInteract(world, x, y, z, player);
 		return false;
 	}
 
 	@Override
-	public void onBlockClicked(World world, int x, int y, int z, EntityPlayer player) {
+	public void func_149699_a(World world, int x, int y, int z, EntityPlayer player) {
 		onInteract(world, x, y, z, player);
 	}
 
 	@Override
-	public void onNeighborBlockChange(World var1, int var2, int var3, int var4, int var5) {
-		if (var5 == Block.fire.blockID) {
+	public void func_149695_a(World var1, int var2, int var3, int var4, Block var5) {
+		if (var5 == Blocks.fire) {
 			this.burn(var1, var2, var3, var4);
 		}
-		super.onNeighborBlockChange(var1, var2, var3, var4, var5);
+		super.func_149695_a(var1, var2, var3, var4, var5);
 	}
 
 	private void burn(World var1, int var2, int var3, int var4) {
-		var1.setBlock(var2, var3, var4, Block.torchWood.blockID, var1.getBlockMetadata(var2, var3, var4), 3);
+		var1.func_147465_d(var2, var3, var4, Blocks.torch, var1.getBlockMetadata(var2, var3, var4), 3);
 		var1.playSoundEffect(var2 + 0.5F, var3 + 0.5F, var4 + 0.5F, "random.fizz", 0.5F, 2.6F + (var1.rand.nextFloat() - var1.rand.nextFloat()) * 0.8F);
 		int var5 = var1.getBlockMetadata(var2, var3, var4);
 		double var6 = var2 + 0.5F;
@@ -64,7 +65,7 @@ public class ModBlockTorch extends BlockTorch {
 	}
 
 	private void onInteract(World world, int x, int y, int z, EntityPlayer player) {
-		if (player.getCurrentEquippedItem() != null && player.getCurrentEquippedItem().itemID == Item.flintAndSteel.itemID) {
+		if (player.getCurrentEquippedItem() != null && player.getCurrentEquippedItem().getItem() == Items.flint_and_steel) {
 			this.burn(world, x, y, z);
 		}
 	}

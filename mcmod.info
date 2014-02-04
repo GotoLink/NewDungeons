@@ -1,0 +1,17 @@
+[
+{
+  "modid": "newdungeons",
+  "name": "New Dungeons",
+  "description": "",
+  "version": $version,
+  "credits": "",
+  "logoFile": "",
+  "mcversion": $mcversion,
+  "url": "",
+  "updateUrl": "",
+  "authors": [ "Slidedrum", "GotoLink" ],
+  "parent":"",
+  "screenshots": [],
+  "dependencies": []
+}
+]

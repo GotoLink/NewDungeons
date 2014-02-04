@@ -110,7 +110,7 @@ public class DunLootItem {
 
 	@Override
 	public String toString() {
-		return this.item instanceof Block ? ((Block) this.item).getUnlocalizedName() : (this.item instanceof Item ? ((Item) this.item).getUnlocalizedName() : null);
+		return this.item instanceof Block ? ((Block) this.item).func_149739_a() : (this.item instanceof Item ? ((Item) this.item).getUnlocalizedName() : null);
 	}
 
 	public List getEffectNamesFromDamage(int var1) {

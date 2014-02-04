@@ -3,21 +3,23 @@ package newdungeons;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
-import java.util.Set;
 
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockHalfSlab;
-import net.minecraft.block.EnumMobType;
 import net.minecraft.block.material.Material;
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.NetServerHandler;
-import net.minecraft.network.packet.NetHandler;
-import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.tileentity.TileEntityDispenser;
 import net.minecraft.tileentity.TileEntityMobSpawner;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.biome.BiomeGenDesert;
@@ -28,42 +30,31 @@ import net.minecraft.world.biome.BiomeGenSwamp;
 import net.minecraft.world.biome.BiomeGenTaiga;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraftforge.common.BiomeDictionary;
-import net.minecraftforge.common.Configuration;
+import net.minecraftforge.common.config.Configuration;
 import cpw.mods.fml.common.IWorldGenerator;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.network.IChatListener;
-import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.common.registry.LanguageRegistry;
 
-@Mod(modid = "newdungeons", name = "New Dungeons", version = "1.6.4")
-public final class NewDungeons implements IWorldGenerator, IChatListener {
+@Mod(modid = "newdungeons", name = "New Dungeons", version = "1.7.2")
+public final class NewDungeons extends CommandBase implements IWorldGenerator {
 	public static Block pressurePlatetest, modDimTorch, modTripWire, modTripWireSource;
-	static ArrayList loot = new ArrayList(), potLoot = new ArrayList(), disLoot = new ArrayList();
-	public static int OmaxSize = 110;
-	public static int OminSize = 10;
-	public static int OminRoomSize = 2;
-	public static int Orareity = 500;
-	public static int OMinSquareBlocks = 500;
-	public static String OadditionalItems = "";
-	public static int pressurePlateID = 2152;
-	public static int dimTorchID = 2153;
-	public static int tripWireID = 2154;
-	public static int tripWireSrcID = 2155;
+	static ArrayList<DunLootItem> loot = new ArrayList<DunLootItem>(), potLoot = new ArrayList<DunLootItem>(), disLoot = new ArrayList<DunLootItem>();
+	public static int maxSize = 110;
+	public static int minSize = 10;
+	public static int minRoomSize = 2;
+	public static int rareity = 500;
+	public static int minSquareBlocks = 500;
+	public static String additionalItems = "";
 	public static String biomesID = "ALL,-WATER";
-	public static int Oheight = 5;
-	public static final boolean Odebug = false, OidCompatibility = false;
-	public static Set<Integer> biomes = new HashSet();
+	public static int height = 5;
+    public static boolean ID_COMPATIBILITY = false;
+	public static final boolean DEBUG = false;
+	public static HashSet<Integer> biomes = new HashSet<Integer>();
 	public static String dimensionsID = "0";
-	public static Set<Integer> dimensions = new HashSet();
-
-	@Override
-	public Packet3Chat clientChat(NetHandler handler, Packet3Chat message) {
-		return message;
-	}
+	public static HashSet<Integer> dimensions = new HashSet<Integer>();
 
 	@Override
 	public void generate(Random random, int chunkX, int chunkZ, World world, IChunkProvider chunkGenerator, IChunkProvider chunkProvider) {
@@ -74,94 +65,62 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 
 	@EventHandler
 	public void load(FMLInitializationEvent event) {
-		++OminRoomSize;
+        if(minRoomSize<2){
+            minRoomSize = 2;
+        }
+        if(minSize<minRoomSize){
+            minSize = minRoomSize;
+        }
+        if(maxSize<minSize+1){
+            maxSize = minSize + 1;
+        }
+        if(rareity<1){
+            rareity = 1;
+        }
+		++minRoomSize;
 		addLoot();
 		generateBiomeList();
 		generateDimensionList();
-		if (!OidCompatibility) {
-			pressurePlatetest = new ModPressurePlate(pressurePlateID, "stone", EnumMobType.players, Material.rock).setHardness(0.5F).setStepSound(Block.soundStoneFootstep)
-					.setUnlocalizedName("pressurePlatePlayer").setTickRandomly(true);
-			GameRegistry.registerBlock(pressurePlatetest, "PressurePlatePlayer");
-		}
-		modDimTorch = new ModBlockTorch(dimTorchID).setHardness(0.0F).setLightValue(0.5F).setStepSound(Block.soundWoodFootstep).setUnlocalizedName("dimTorch").setTextureName("torch_on")
-				.setTickRandomly(true);
-		modTripWire = new ModBlockTripWire(tripWireID).setUnlocalizedName("tripWirePlayer").setTextureName("trip_wire").setTickRandomly(true);
-		modTripWireSource = new ModBlockTripWireSource(tripWireSrcID).setUnlocalizedName("tripWireSourcePlayer").setTextureName("trip_wire_source").setTickRandomly(true);
-		GameRegistry.registerBlock(modTripWire, "TripWirePlayer");
-		GameRegistry.registerBlock(modTripWireSource, "WireHookPlayer");
-		GameRegistry.registerBlock(modDimTorch, "DimTorch");
-		LanguageRegistry.addName(modDimTorch, "Dim Torch");
-		GameRegistry.addShapelessRecipe(new ItemStack(Block.torchWood, 6), Item.coal, modDimTorch);
-		GameRegistry.addShapelessRecipe(new ItemStack(Block.torchWood, 6), Item.flint, modDimTorch);
-		GameRegistry.addShapelessRecipe(new ItemStack(Block.torchWood, 8), Item.coal, Item.stick, modDimTorch);
-		GameRegistry.registerWorldGenerator(this);
-		NetworkRegistry.instance().registerChatListener(this);
+		GameRegistry.registerWorldGenerator(this, 2);
 	}
 
 	@EventHandler
 	public void preLoad(FMLPreInitializationEvent event) {
 		Configuration config = new Configuration(event.getSuggestedConfigurationFile());
-		OmaxSize = config.get("Generation", "Max size", OmaxSize).getInt();
-		OminSize = config.get("Generation", "Min size", OminSize).getInt();
-		OminRoomSize = config.get("Generation", "Room min size", OminRoomSize).getInt();
-		Orareity = config.get("Generation", "Dungeon rarity", Orareity, "higher=rarer").getInt();
-		OMinSquareBlocks = config.get("Generation", "Min size in square blocks", OMinSquareBlocks).getInt();
+		maxSize = config.get("Generation", "Max size", maxSize).getInt();
+		minSize = config.get("Generation", "Min size", minSize).getInt();
+		minRoomSize = config.get("Generation", "Room min size", minRoomSize).getInt();
+		rareity = config.get("Generation", "Dungeon rarity", rareity, "higher=rarer").getInt();
+		minSquareBlocks = config.get("Generation", "Min size in square blocks", minSquareBlocks).getInt();
 		biomesID = config.get("Generation", "Biomes allowed", biomesID).getString();
 		dimensionsID = config.get("Generation", "Dimensions allowed", dimensionsID).getString();
-		OadditionalItems = config.get("Generation", "Add chest items", OadditionalItems, "Arguments: itemId rarity value maxStack minStack minDanger enchProb maxEnchant damageVal").getString();
-		pressurePlateID = config.getBlock("Player sensitive pressure plate", pressurePlateID).getInt();
-		dimTorchID = config.getBlock("Dim torch", dimTorchID).getInt();
-		tripWireID = config.getBlock("Player sensitive trip wire", tripWireID).getInt();
-		tripWireSrcID = config.getBlock("Player sensitive wire hook", tripWireSrcID).getInt();
-		config.save();
+		additionalItems = config.get("Generation", "Add chest items", additionalItems, "Arguments: itemName rarity value maxStack minStack minDanger enchProb maxEnchant damageVal").getString();
+        ID_COMPATIBILITY = !config.get("Generation", "Use custom blocks", !ID_COMPATIBILITY).getBoolean(DEBUG);
+        config.save();
+        if (!ID_COMPATIBILITY) {
+            pressurePlatetest = new ModPressurePlate("stone", Material.field_151576_e).func_149711_c(0.5F).func_149672_a(Block.field_149780_i)
+                    .func_149663_c("pressurePlatePlayer").func_149675_a(true);
+            GameRegistry.registerBlock(pressurePlatetest, "PressurePlatePlayer");
+            modDimTorch = new ModBlockTorch().func_149711_c(0.0F).func_149715_a(0.5F).func_149672_a(Block.field_149766_f).func_149663_c("dimTorch").func_149658_d("torch_on")
+                .func_149675_a(true);
+            GameRegistry.registerBlock(modDimTorch, "DimTorch");
+            modTripWire = new ModBlockTripWire().func_149663_c("tripWirePlayer").func_149658_d("trip_wire").func_149675_a(true);
+            modTripWireSource = new ModBlockTripWireSource().func_149663_c("tripWireSourcePlayer").func_149658_d("trip_wire_source").func_149675_a(true);
+            GameRegistry.registerBlock(modTripWire, "TripWirePlayer");
+            GameRegistry.registerBlock(modTripWireSource, "WireHookPlayer");
+            GameRegistry.addShapelessRecipe(new ItemStack(Blocks.torch, 6), Items.coal, modDimTorch);
+            GameRegistry.addShapelessRecipe(new ItemStack(Blocks.torch, 6), Items.flint, modDimTorch);
+            GameRegistry.addShapelessRecipe(new ItemStack(Blocks.torch, 8), Items.coal, Items.stick, modDimTorch);
+        }
 	}
 
-	@Override
-	public Packet3Chat serverChat(NetHandler handler, Packet3Chat message) {
-		serverChat((NetServerHandler) handler, message.message);
-		return message;
-	}
-
-	public void serverChat(NetServerHandler var1, String var2) {
-		String[] var3 = var2.split(" ");
-		if (var3[0].equals("/makeDun") && var3.length == 3) {
-			World var4 = var1.getPlayer().worldObj;
-			Random var5 = new Random();
-			int var6 = Integer.parseInt(var3[1]);
-			int var7 = Integer.parseInt(var3[2]);
-			double var8 = var1.getPlayer().lastTickPosX - var6 / 2;
-			double var10 = var1.getPlayer().lastTickPosZ - var7 / 2;
-			byte var12 = 5;
-			int var13 = 100;
-			int var14;
-			if (!Odebug) {
-				var13 = var5.nextInt(45) + 10;
-				for (var14 = 0; var14 < 10; ++var14) {
-					try {
-						var13 = var4.getTopSolidOrLiquidBlock((int) var8, (int) var10) - (var5.nextInt(30) + 20);
-					} catch (Exception var16) {
-						return;
-					}
-					if (var13 > 10 && var13 < 55) {
-						break;
-					}
-				}
-			}
-			var14 = var6 * var7 / (var5.nextInt(50) + 50);
-			if (makeDun1(var4, var5, var6, var7, var12, (int) var8, var13, (int) var10, var14, var4.getWorldChunkManager().getBiomeGenAt((int) var8, (int) var10))) {
-				var1.getPlayer().addChatMessage("successfully made a dungeon! look around.");
-			}
-		}
-	}
 
 	public static void genDun1(World var0, Random var1, int var2, int var3, BiomeGenBase biome) {
-		if (var1.nextInt(Orareity) == 0) {
-			int var4 = var2;
-			int var5 = var3;
+		if (var1.nextInt(rareity) == 0) {
 			int var6 = var1.nextInt(45) + 10;
 			int var7;
 			for (var7 = 0; var7 < 10; ++var7) {
-				var6 = var0.getTopSolidOrLiquidBlock(var4, var5) - (var1.nextInt(30) + 20);
+				var6 = var0.getTopSolidOrLiquidBlock(var2, var3) - (var1.nextInt(30) + 20);
 				if (var6 > 10 && var6 < 55) {
 					break;
 				}
@@ -171,18 +130,18 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			int var9;
 			int var10;
 			int var11;
-			for (var9 = 0; var9 < 100 && (var7 * var8 < OMinSquareBlocks || var7 < 10 || var8 < 10); ++var9) {
-				var10 = var1.nextInt(OmaxSize - OminSize) + OminSize + 1;
-				var11 = var1.nextInt(OmaxSize - OminSize) + OminSize + 1;
-				var7 = var1.nextInt(var10 - OminSize) + OminSize;
-				var8 = var1.nextInt(var11 - OminSize) + OminSize;
+			for (var9 = 0; var9 < 100 && (var7 * var8 < minSquareBlocks || var7 < 10 || var8 < 10); ++var9) {
+				var10 = var1.nextInt(maxSize - minSize) + minSize + 1;
+				var11 = var1.nextInt(maxSize - minSize) + minSize + 1;
+				var7 = var1.nextInt(var10 - minSize) + minSize;
+				var8 = var1.nextInt(var11 - minSize) + minSize;
 			}
 			var11 = var7 * var8 / (var1.nextInt(50) + 50);
-			if (Odebug) {
+			if (DEBUG) {
 				var6 = 100;
 			}
 			if (var9 < 100) {
-				makeDun1(var0, var1, var7, var8, Oheight, var4, var6, var5, var11, biome);
+				makeDun1(var0, var1, var7, var8, height, var2, var6, var3, var11, biome);
 			}
 		}
 	}
@@ -212,68 +171,68 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 		if (var5 instanceof BiomeGenJungle) {
 			var6 = 2;
 		}
-		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2 - 1, var3, var4) == 0) {
+		if (var1.nextInt(var6) == 0 && var0.func_147437_c(var2 - 1, var3, var4)) {
 			setVines(var0, var2 - 1, var3, var4, 8);
 		}
-		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2 + 1, var3, var4) == 0) {
+		if (var1.nextInt(var6) == 0 && var0.func_147437_c(var2 + 1, var3, var4)) {
 			setVines(var0, var2 + 1, var3, var4, 2);
 		}
-		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2, var3, var4 - 1) == 0) {
+		if (var1.nextInt(var6) == 0 && var0.func_147437_c(var2, var3, var4 - 1)) {
 			setVines(var0, var2, var3, var4 - 1, 1);
 		}
-		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2, var3, var4 + 1) == 0) {
+		if (var1.nextInt(var6) == 0 && var0.func_147437_c(var2, var3, var4 + 1)) {
 			setVines(var0, var2, var3, var4 + 1, 4);
 		}
-		if (var1.nextInt(var6) == 0 && var0.getBlockId(var2, var3 - 1, var4) == 0) {
+		if (var1.nextInt(var6) == 0 && var0.func_147437_c(var2, var3 - 1, var4)) {
 			setVines(var0, var2, var3 - 1, var4 + 1);
 		}
 	}
 
 	public static boolean isEmpty(World var0, int var1, int var2, int var3) {
-		int var4 = var0.getBlockId(var1, var2, var3);
-		return var4 == 0 || var4 == Block.vine.blockID || var4 == Block.web.blockID || var4 == modDimTorch.blockID;
+		Block var4 = var0.func_147439_a(var1, var2, var3);
+		return var4 == Blocks.air || var4 == Blocks.vine || var4 == Blocks.web || var4 == modDimTorch;
 	}
 
 	private static void addLoot() {
-		int var1 = 1;
-		int var2 = 1;
-		int var3 = 1;
-		int var4 = 1;
-		int var5 = 30;
-		int var6 = 0;
-		int var7 = 1;
-		double var8 = 1.0D;
-		double var10 = 1.0D;
-		if (!OadditionalItems.equals("")) {
-			String[] var12 = OadditionalItems.split("_");
-			for (int var13 = 0; var13 < var12.length; ++var13) {
-				String[] var14 = var12[var13].split("-");
+		if (!additionalItems.equals("")) {
+            String var1 = null;
+            int var2 = 1;
+            int var3 = 1;
+            int var4 = 1;
+            int var5 = 30;
+            int var6 = 0;
+            int var7 = 1;
+            double var8 = 1.0D;
+            double var10 = 1.0D;
+            String[] var14;
+			for (String item : additionalItems.split("_")) {
+				var14 = item.split("-");
 				try {
 					switch (var14.length) {
 					case 1:
 					case 2:
-						System.err.println("cannot add id" + Integer.parseInt(var14[0]) + "not enough arguments!");
+						System.err.println("cannot add item" + var14[0] + "not enough arguments!");
 						break;
 					case 3:
-						var1 = Integer.parseInt(var14[0]);
+						var1 = var14[0];
 						var8 = Double.parseDouble(var14[1]);
 						var10 = Double.parseDouble(var14[2]);
 						break;
 					case 4:
-						var1 = Integer.parseInt(var14[0]);
+						var1 = var14[0];
 						var8 = Double.parseDouble(var14[1]);
 						var10 = Double.parseDouble(var14[2]);
 						var2 = Integer.parseInt(var14[3]);
 						break;
 					case 5:
-						var1 = Integer.parseInt(var14[0]);
+						var1 = var14[0];
 						var8 = Double.parseDouble(var14[1]);
 						var10 = Double.parseDouble(var14[2]);
 						var2 = Integer.parseInt(var14[3]);
 						var3 = Integer.parseInt(var14[4]);
 						break;
 					case 6:
-						var1 = Integer.parseInt(var14[0]);
+						var1 = var14[0];
 						var8 = Double.parseDouble(var14[1]);
 						var10 = Double.parseDouble(var14[2]);
 						var2 = Integer.parseInt(var14[3]);
@@ -281,7 +240,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						var4 = Integer.parseInt(var14[5]);
 						break;
 					case 7:
-						var1 = Integer.parseInt(var14[0]);
+						var1 = var14[0];
 						var8 = Double.parseDouble(var14[1]);
 						var10 = Double.parseDouble(var14[2]);
 						var2 = Integer.parseInt(var14[3]);
@@ -290,7 +249,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						var6 = Integer.parseInt(var14[6]);
 						break;
 					case 8:
-						var1 = Integer.parseInt(var14[0]);
+						var1 = var14[0];
 						var8 = Double.parseDouble(var14[1]);
 						var10 = Double.parseDouble(var14[2]);
 						var2 = Integer.parseInt(var14[3]);
@@ -300,7 +259,8 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						var5 = Integer.parseInt(var14[7]);
 						break;
 					case 9:
-						var1 = Integer.parseInt(var14[0]);
+                    default:
+						var1 = var14[0];
 						var8 = Double.parseDouble(var14[1]);
 						var10 = Double.parseDouble(var14[2]);
 						var2 = Integer.parseInt(var14[3]);
@@ -309,95 +269,113 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						var6 = Integer.parseInt(var14[6]);
 						var5 = Integer.parseInt(var14[7]);
 						var7 = Integer.parseInt(var14[8]);
+                        break;
 					}
-				} catch (NumberFormatException var18) {
+                    if(var1==null){
+                        continue;
+                    }
+                    Block var15 = GameData.blockRegistry.get(var1);
+                    if(var15!=null){
+                        loot.add(new DunLootItem(var15, var2, var3, var8, var10, var4, var5, var6, var7, var7));
+                    }else{
+                        Item var20 = GameData.itemRegistry.get(var1);
+                        if(var20!=null){
+                            loot.add(new DunLootItem(var20, var2, var3, var8, var10, var4, var5, var6, var7, var7));
+                        }
+                    }
+				} catch (Exception var18) {
 					System.err.println("New Dungeons error: " + var18.toString());
 				}
-				Block var15 = Block.blocksList[var1];
-				loot.add(new DunLootItem(var15, var2, var3, var8, var10, var4, var5, var6, var7, var7));
-				Item var20 = Item.itemsList[var1];
-				loot.add(new DunLootItem(var20, var2, var3, var8, var10, var4, var5, var6, var7, var7));
+
 			}
 		}
-		loot.add(new DunLootItem(Item.diamond, 6, 1, 20.0D, 15.0D, 300));
-		loot.add(new DunLootItem(Block.torchWood, 15, 1, 3.0D, 3.0D, 30));
-		loot.add(new DunLootItem(Block.dirt, 64, 15, 13.0D, 1.0D, -1));
-		loot.add(new DunLootItem(Item.appleRed, 3, 1, 5.0D, 5.0D, 50));
-		loot.add(new DunLootItem(Item.bone, 5, 1, 7.0D, 2.0D, 0));
-		loot.add(new DunLootItem(Item.arrow, 16, 1, 10.0D, 7.0D, 50));
-		loot.add(new DunLootItem(Item.bow, 1, 1, 20.0D, 15.0D, 100, 20, 20));
-		loot.add(new DunLootItem(Item.painting, 2, 1, 25.0D, 3.0D, 30));
-		loot.add(new DunLootItem(Block.planks, 5, 1, 4.0D, 10.0D, 40, 0, 0, 0, 3));
-		loot.add(new DunLootItem(Block.wood, 5, 1, 16.0D, 15.0D, 60, 0, 0, 0, 3));
-		loot.add(new DunLootItem(Item.leather, 5, 1, 10.0D, 8.0D, 20));
-		loot.add(new DunLootItem(Item.legsLeather, 1, 1, 20.0D, 15.0D, 50));
-		loot.add(new DunLootItem(Item.helmetLeather, 1, 1, 20.0D, 15.0D, 50));
-		loot.add(new DunLootItem(Item.bootsLeather, 1, 1, 20.0D, 15.0D, 50));
-		loot.add(new DunLootItem(Item.plateLeather, 1, 1, 20.0D, 15.0D, 50));
-		loot.add(new DunLootItem(Item.legsIron, 1, 1, 35.0D, 30.0D, 250, 15, 15));
-		loot.add(new DunLootItem(Item.helmetIron, 1, 1, 35.0D, 30.0D, 250, 15, 15));
-		loot.add(new DunLootItem(Item.bootsIron, 1, 1, 35.0D, 30.0D, 250, 15, 15));
-		loot.add(new DunLootItem(Item.plateIron, 1, 1, 35.0D, 30.0D, 250, 15, 15));
-		loot.add(new DunLootItem(Item.bread, 5, 1, 7.0D, 5.0D, 50));
-		loot.add(new DunLootItem(Item.bucketEmpty, 1, 1, 10.0D, 2.0D, 20));
-		loot.add(new DunLootItem(Item.ingotIron, 10, 1, 20.0D, 7.0D, 150));
-		loot.add(new DunLootItem(Block.oreIron, 10, 1, 10.0D, 5.0D, 100));
-		loot.add(new DunLootItem(Item.cake, 1, 1, 40.0D, 20.0D, 60));
-		loot.add(new DunLootItem(Item.beefRaw, 1, 1, 5.0D, 4.0D, 5));
-		loot.add(new DunLootItem(Item.beefCooked, 1, 1, 6.0D, 8.0D, 5));
-		loot.add(new DunLootItem(Block.melon, 3, 1, 17.0D, 10.0D, 30));
-		loot.add(new DunLootItem(Item.melonSeeds, 5, 1, 8.0D, 7.0D, 30));
-		loot.add(new DunLootItem(Block.pumpkin, 3, 1, 13.0D, 10.0D, 30));
-		loot.add(new DunLootItem(Item.pumpkinSeeds, 5, 1, 8.0D, 7.0D, 30));
-		loot.add(new DunLootItem(Block.cobblestone, 64, 15, 14.0D, 2.0D, 0));
-		loot.add(new DunLootItem(Item.legsGold, 1, 1, 80.0D, 25.0D, 350, 17, 6));
-		loot.add(new DunLootItem(Item.helmetGold, 1, 1, 80.0D, 25.0D, 350, 17, 6));
-		loot.add(new DunLootItem(Item.bootsGold, 1, 1, 80.0D, 25.0D, 350, 17, 6));
-		loot.add(new DunLootItem(Item.plateGold, 1, 1, 80.0D, 25.0D, 350, 17, 6));
-		loot.add(new DunLootItem(Item.pickaxeWood, 1, 1, 20.0D, 2.0D, 70));
-		loot.add(new DunLootItem(Item.pickaxeStone, 1, 1, 20.0D, 5.0D, 70));
-		loot.add(new DunLootItem(Item.pickaxeIron, 1, 1, 50.0D, 15.0D, 100, 30, 20));
-		loot.add(new DunLootItem(Item.pickaxeDiamond, 1, 1, 70.0D, 60.0D, 400, 50, 25));
-		loot.add(new DunLootItem(Item.swordWood, 1, 1, 20.0D, 3.0D, 70));
-		loot.add(new DunLootItem(Item.swordStone, 1, 1, 20.0D, 6.0D, 70));
-		loot.add(new DunLootItem(Item.swordIron, 1, 1, 50.0D, 17.0D, 100, 30, 20));
-		loot.add(new DunLootItem(Item.swordDiamond, 1, 1, 70.0D, 61.0D, 400, 50, 25));
-		loot.add(new DunLootItem(Item.appleGold, 1, 1, 1000.0D, 100.0D, 200));
-		loot.add(new DunLootItem(Item.enderPearl, 6, 1, 46.0D, 80.0D, 200));
-		loot.add(new DunLootItem(Item.eyeOfEnder, 3, 1, 57.0D, 130.0D, 300));
-		loot.add(new DunLootItem(Item.redstone, 64, 32, 60.0D, 3.0D, 15));
-		loot.add(new DunLootItem(Block.tnt, 3, 1, 30.0D, 36.0D, 300));
-		loot.add(new DunLootItem(Item.saddle, 1, 1, 10.0D, 60.0D, 30));
-		loot.add(new DunLootItem(Item.rottenFlesh, 4, 1, 2.0D, 10.0D, 0));
-		loot.add(new DunLootItem(Item.coal, 7, 1, 15.0D, 18.0D, 20));
-		loot.add(new DunLootItem(Item.stick, 7, 1, 3.0D, 2.0D, 0));
-		loot.add(new DunLootItem(Item.flintAndSteel, 1, 1, 20.0D, 100.0D, 200));
-		loot.add(new DunLootItem(Item.flint, 7, 1, 15.0D, 5.0D, 13));
-		loot.add(new DunLootItem(Block.obsidian, 3, 1, 34.0D, 40.0D, 200));
-		loot.add(new DunLootItem(Item.emerald, 3, 1, 40.0D, 50.0D, 200));
-		for (int var19 = 0; var19 <= 10; ++var19) {
-			loot.add(new DunLootItem(Item.itemsList[Item.record13.itemID + var19], 1, 1, 1000 + var19 * 2, 50.0D, 0));
-		}
-		loot.add(new DunLootItem(Item.itemsList[Item.potion.itemID], 1, 1, 27.0D, 36.0D, 100, 0, 99999999));
-		potLoot.add(new DunLootItem(Item.glowstone, 4, 1, 1.0D, 1.0D, 0));
-		potLoot.add(new DunLootItem(Item.redstone, 4, 1, 1.0D, 1.0D, 0));
-		potLoot.add(new DunLootItem(Item.netherStalkSeeds, 4, 1, 1.0D, 1.0D, 0));
-		potLoot.add(new DunLootItem(Item.sugar, 4, 1, 1.0D, 1.0D, 0));
-		potLoot.add(new DunLootItem(Item.gunpowder, 4, 1, 1.0D, 1.0D, 0));
-		potLoot.add(new DunLootItem(Item.spiderEye, 4, 1, 1.0D, 1.0D, 0));
-		potLoot.add(new DunLootItem(Item.fermentedSpiderEye, 4, 1, 5.0D, 4.0D, 0));
-		potLoot.add(new DunLootItem(Item.goldNugget, 4, 1, 1.0D, 1.0D, 0));
-		potLoot.add(new DunLootItem(Item.melon, 4, 1, 1.0D, 1.0D, 0, 0, 0, 0, 1));
-		potLoot.add(new DunLootItem(Item.ghastTear, 4, 1, 7.0D, 1.0D, 0));
-		potLoot.add(new DunLootItem(Item.magmaCream, 4, 1, 3.0D, 1.0D, 0));
-		potLoot.add(new DunLootItem(Item.glassBottle, 10, 1, 1.0D, 1.0D, 0));
-		disLoot.add(new DunLootItem(Item.arrow, 5, 1, 1.0D, 1.0D, 10));
-		disLoot.add(new DunLootItem(Item.snowball, 5, 1, 10.0D, 15.0D, 10));
-		disLoot.add(new DunLootPotion(Item.itemsList[Item.potion.itemID], 6, 2, 1.0D, 0.0D, 0, 16420));
-		disLoot.add(new DunLootPotion(Item.itemsList[Item.potion.itemID], 4, 2, 1.0D, 0.0D, 0, 16396));
-		disLoot.add(new DunLootPotion(Item.itemsList[Item.potion.itemID], 5, 2, 1.0D, 0.0D, 0, 16428));
-		disLoot.add(new DunLootPotion(Item.itemsList[Item.potion.itemID], 3, 2, 1.0D, 0.0D, 0, 16456));
-		disLoot.add(new DunLootPotion(Item.itemsList[Item.potion.itemID], 3, 2, 1.0D, 0.0D, 0, 16458));
+		loot.add(new DunLootItem(Items.diamond, 6, 1, 20.0D, 15.0D, 300));
+		loot.add(new DunLootItem(Blocks.torch, 15, 1, 3.0D, 3.0D, 30));
+		loot.add(new DunLootItem(Blocks.dirt, 64, 15, 13.0D, 1.0D, -1));
+		loot.add(new DunLootItem(Items.apple, 3, 1, 5.0D, 5.0D, 50));
+		loot.add(new DunLootItem(Items.bone, 5, 1, 7.0D, 2.0D, 0));
+		loot.add(new DunLootItem(Items.arrow, 16, 1, 10.0D, 7.0D, 50));
+		loot.add(new DunLootItem(Items.bow, 1, 1, 20.0D, 15.0D, 100, 20, 20));
+		loot.add(new DunLootItem(Items.painting, 2, 1, 25.0D, 3.0D, 30));
+		loot.add(new DunLootItem(Blocks.planks, 5, 1, 4.0D, 10.0D, 40, 0, 0, 0, 3));
+		loot.add(new DunLootItem(Blocks.log, 5, 1, 16.0D, 15.0D, 60, 0, 0, 0, 3));
+		loot.add(new DunLootItem(Items.leather, 5, 1, 10.0D, 8.0D, 20));
+		loot.add(new DunLootItem(Items.leather_leggings, 1, 1, 20.0D, 15.0D, 50));
+		loot.add(new DunLootItem(Items.leather_helmet, 1, 1, 20.0D, 15.0D, 50));
+		loot.add(new DunLootItem(Items.leather_boots, 1, 1, 20.0D, 15.0D, 50));
+		loot.add(new DunLootItem(Items.leather_chestplate, 1, 1, 20.0D, 15.0D, 50));
+		loot.add(new DunLootItem(Items.iron_leggings, 1, 1, 35.0D, 30.0D, 250, 15, 15));
+		loot.add(new DunLootItem(Items.iron_helmet, 1, 1, 35.0D, 30.0D, 250, 15, 15));
+		loot.add(new DunLootItem(Items.iron_boots, 1, 1, 35.0D, 30.0D, 250, 15, 15));
+		loot.add(new DunLootItem(Items.iron_chestplate, 1, 1, 35.0D, 30.0D, 250, 15, 15));
+		loot.add(new DunLootItem(Items.bread, 5, 1, 7.0D, 5.0D, 50));
+		loot.add(new DunLootItem(Items.bucket, 1, 1, 10.0D, 2.0D, 20));
+		loot.add(new DunLootItem(Items.iron_ingot, 10, 1, 20.0D, 7.0D, 150));
+		loot.add(new DunLootItem(Blocks.iron_ore, 10, 1, 10.0D, 5.0D, 100));
+		loot.add(new DunLootItem(Items.cake, 1, 1, 40.0D, 20.0D, 60));
+		loot.add(new DunLootItem(Items.beef, 1, 1, 5.0D, 4.0D, 5));
+		loot.add(new DunLootItem(Items.cooked_beef, 1, 1, 6.0D, 8.0D, 5));
+		loot.add(new DunLootItem(Blocks.melon_block, 3, 1, 17.0D, 10.0D, 30));
+		loot.add(new DunLootItem(Items.melon_seeds, 5, 1, 8.0D, 7.0D, 30));
+		loot.add(new DunLootItem(Blocks.pumpkin, 3, 1, 13.0D, 10.0D, 30));
+		loot.add(new DunLootItem(Items.pumpkin_seeds, 5, 1, 8.0D, 7.0D, 30));
+		loot.add(new DunLootItem(Blocks.cobblestone, 64, 15, 14.0D, 2.0D, 0));
+		loot.add(new DunLootItem(Items.golden_leggings, 1, 1, 80.0D, 25.0D, 350, 17, 6));
+		loot.add(new DunLootItem(Items.golden_helmet, 1, 1, 80.0D, 25.0D, 350, 17, 6));
+		loot.add(new DunLootItem(Items.golden_boots, 1, 1, 80.0D, 25.0D, 350, 17, 6));
+		loot.add(new DunLootItem(Items.golden_chestplate, 1, 1, 80.0D, 25.0D, 350, 17, 6));
+		loot.add(new DunLootItem(Items.wooden_pickaxe, 1, 1, 20.0D, 2.0D, 70));
+		loot.add(new DunLootItem(Items.stone_pickaxe, 1, 1, 20.0D, 5.0D, 70));
+		loot.add(new DunLootItem(Items.iron_pickaxe, 1, 1, 50.0D, 15.0D, 100, 30, 20));
+		loot.add(new DunLootItem(Items.diamond_pickaxe, 1, 1, 70.0D, 60.0D, 400, 50, 25));
+		loot.add(new DunLootItem(Items.wooden_sword, 1, 1, 20.0D, 3.0D, 70));
+		loot.add(new DunLootItem(Items.stone_sword, 1, 1, 20.0D, 6.0D, 70));
+		loot.add(new DunLootItem(Items.iron_sword, 1, 1, 50.0D, 17.0D, 100, 30, 20));
+		loot.add(new DunLootItem(Items.diamond_sword, 1, 1, 70.0D, 61.0D, 400, 50, 25));
+		loot.add(new DunLootItem(Items.golden_apple, 1, 1, 1000.0D, 100.0D, 200));
+		loot.add(new DunLootItem(Items.ender_pearl, 6, 1, 46.0D, 80.0D, 200));
+		loot.add(new DunLootItem(Items.ender_eye, 3, 1, 57.0D, 130.0D, 300));
+		loot.add(new DunLootItem(Items.redstone, 64, 32, 60.0D, 3.0D, 15));
+		loot.add(new DunLootItem(Blocks.tnt, 3, 1, 30.0D, 36.0D, 300));
+		loot.add(new DunLootItem(Items.saddle, 1, 1, 10.0D, 60.0D, 30));
+		loot.add(new DunLootItem(Items.rotten_flesh, 4, 1, 2.0D, 10.0D, 0));
+		loot.add(new DunLootItem(Items.coal, 7, 1, 15.0D, 18.0D, 20));
+		loot.add(new DunLootItem(Items.stick, 7, 1, 3.0D, 2.0D, 0));
+		loot.add(new DunLootItem(Items.flint_and_steel, 1, 1, 20.0D, 100.0D, 200));
+		loot.add(new DunLootItem(Items.flint, 7, 1, 15.0D, 5.0D, 13));
+		loot.add(new DunLootItem(Blocks.obsidian, 3, 1, 34.0D, 40.0D, 200));
+		loot.add(new DunLootItem(Items.emerald, 3, 1, 40.0D, 50.0D, 200));
+        loot.add(new DunLootItem(Items.record_13, 1, 1, 1000, 50.0D, 0));
+        loot.add(new DunLootItem(Items.record_cat, 1, 1, 1002, 50.0D, 0));
+        loot.add(new DunLootItem(Items.record_blocks, 1, 1, 1004, 50.0D, 0));
+        loot.add(new DunLootItem(Items.record_chirp, 1, 1, 1006, 50.0D, 0));
+        loot.add(new DunLootItem(Items.record_far, 1, 1, 1008, 50.0D, 0));
+        loot.add(new DunLootItem(Items.record_mall, 1, 1, 1010, 50.0D, 0));
+        loot.add(new DunLootItem(Items.record_mellohi, 1, 1, 1012, 50.0D, 0));
+        loot.add(new DunLootItem(Items.record_stal, 1, 1, 1014, 50.0D, 0));
+        loot.add(new DunLootItem(Items.record_strad, 1, 1, 1016, 50.0D, 0));
+        loot.add(new DunLootItem(Items.record_ward, 1, 1, 1018, 50.0D, 0));
+        loot.add(new DunLootItem(Items.record_11, 1, 1, 1020, 50.0D, 0));
+		loot.add(new DunLootItem(Items.potionitem, 1, 1, 27.0D, 36.0D, 100, 0, 99999999));
+		potLoot.add(new DunLootItem(Items.glowstone_dust, 4, 1, 1.0D, 1.0D, 0));
+		potLoot.add(new DunLootItem(Items.redstone, 4, 1, 1.0D, 1.0D, 0));
+		potLoot.add(new DunLootItem(Items.nether_wart, 4, 1, 1.0D, 1.0D, 0));
+		potLoot.add(new DunLootItem(Items.sugar, 4, 1, 1.0D, 1.0D, 0));
+		potLoot.add(new DunLootItem(Items.gunpowder, 4, 1, 1.0D, 1.0D, 0));
+		potLoot.add(new DunLootItem(Items.spider_eye, 4, 1, 1.0D, 1.0D, 0));
+		potLoot.add(new DunLootItem(Items.fermented_spider_eye, 4, 1, 5.0D, 4.0D, 0));
+		potLoot.add(new DunLootItem(Items.gold_nugget, 4, 1, 1.0D, 1.0D, 0));
+		potLoot.add(new DunLootItem(Items.melon, 4, 1, 1.0D, 1.0D, 0, 0, 0, 0, 1));
+		potLoot.add(new DunLootItem(Items.ghast_tear, 4, 1, 7.0D, 1.0D, 0));
+		potLoot.add(new DunLootItem(Items.magma_cream, 4, 1, 3.0D, 1.0D, 0));
+		potLoot.add(new DunLootItem(Items.glass_bottle, 10, 1, 1.0D, 1.0D, 0));
+		disLoot.add(new DunLootItem(Items.arrow, 5, 1, 1.0D, 1.0D, 10));
+		disLoot.add(new DunLootItem(Items.snowball, 5, 1, 10.0D, 15.0D, 10));
+		disLoot.add(new DunLootPotion(Items.potionitem, 6, 2, 1.0D, 0.0D, 0, 16420));
+		disLoot.add(new DunLootPotion(Items.potionitem, 4, 2, 1.0D, 0.0D, 0, 16396));
+		disLoot.add(new DunLootPotion(Items.potionitem, 5, 2, 1.0D, 0.0D, 0, 16428));
+		disLoot.add(new DunLootPotion(Items.potionitem, 3, 2, 1.0D, 0.0D, 0, 16456));
+		disLoot.add(new DunLootPotion(Items.potionitem, 3, 2, 1.0D, 0.0D, 0, 16458));
 	}
 
 	private static void genDun5(World var1, Random var2, int var3, int var4) {
@@ -415,10 +393,10 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 							return;
 						}
 					} while (var1.getTopSolidOrLiquidBlock(var6, var7) == var8);
-				} while (var1.getBlockId(var6, var8 - 1, var7) == Block.waterStill.blockID);
-				if (var1.getBlockId(var6, var8, var7) == 0 && var1.getBlockId(var6, var8 - 1, var7) != 0) {
-					var1.setBlock(var6, var8, var7, Block.chest.blockID);
-					ArrayList var9 = new ArrayList();
+				} while (var1.func_147439_a(var6, var8 - 1, var7) == Blocks.water);
+				if (var1.func_147437_c(var6, var8, var7) && !var1.func_147437_c(var6, var8 - 1, var7)) {
+					var1.func_147449_b(var6, var8, var7, Blocks.chest);
+					ArrayList<DunChest> var9 = new ArrayList<DunChest>();
 					var9.add(new DunChest(var6, var8, var7));
 					int var10 = 60 - var8;
 					int var11 = var10 * 15;
@@ -432,7 +410,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 	private static void generateBiomeList() {
 		for (String txt : biomesID.split(",")) {
 			if (txt.equalsIgnoreCase("ALL")) {
-				for (int i = 0; i < BiomeGenBase.biomeList.length; i++) {
+				for (int i = 0; i < BiomeGenBase.func_150565_n().length; i++) {
 					biomes.add(i);
 				}
 			} else if (txt.startsWith("-")) {
@@ -470,49 +448,49 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 	}
 
 	private static void genStone(World var0, Random var1, BiomeGenBase biome, int var2, int var3, int var4, boolean var5) {
-		int var8 = Block.stoneBrick.blockID;
+		Block var8 = Blocks.stonebrick;
 		byte var9 = 0;
 		boolean var10 = false;
 		if (var1.nextInt(10) == 0 && var5) {
-			var0.setBlock(var2, var3, var4, 0);
+			var0.func_147468_f(var2, var3, var4);
 			genStone(var0, var1, biome, var2, var3 + 1, var4);
 		} else {
 			while (!var10) {
 				int var6 = var1.nextInt(7);
 				int var7 = var1.nextInt(100);
 				if (var6 == 0 && var7 < 50) {
-					var8 = Block.stoneBrick.blockID;
+					var8 = Blocks.stonebrick;
 					var10 = true;
 				}
 				if (var6 == 1 && var7 < 25) {
-					var8 = Block.stoneBrick.blockID;
+					var8 = Blocks.stonebrick;
 					var9 = 1;
 					var10 = true;
 				}
 				if (var6 == 2 && var7 < 25) {
-					var8 = Block.stoneBrick.blockID;
+					var8 = Blocks.stonebrick;
 					var9 = 2;
 					var10 = true;
 				}
 				if (var6 == 3 && var7 < 10) {
-					var8 = Block.cobblestoneMossy.blockID;
+					var8 = Blocks.mossy_cobblestone;
 					var10 = true;
 				}
 				if (var6 == 4 && var7 < 6) {
-					var8 = Block.cobblestone.blockID;
+					var8 = Blocks.cobblestone;
 					var10 = true;
 				}
 				if (var6 == 5 && var7 < 3) {
-					var8 = Block.stone.blockID;
+					var8 = Blocks.stone;
 					var10 = true;
 				}
 				if (var6 == 6 && var7 < 7) {
-					var8 = Block.stoneBrick.blockID;
+					var8 = Blocks.stonebrick;
 					var9 = 3;
 					var10 = true;
 				}
 			}
-			var0.setBlock(var2, var3, var4, var8, var9, 2);
+			var0.func_147465_d(var2, var3, var4, var8, var9, 2);
 		}
 		genVine(var0, var1, var2, var3, var4, biome);
 	}
@@ -528,8 +506,8 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 		for (var14 = 0; var14 < var2 + 1; ++var14) {
 			for (var15 = 0; var15 < var3 + 1; ++var15) {
 				for (var16 = 1; var16 < var4 - 1; ++var16) {
-					if (var0.getBlockId(var5 + var14, var6 + var16, var7 + var15) != Block.chest.blockID) {
-						var0.setBlock(var5 + var14, var6 + var16, var7 + var15, 0);
+					if (var0.func_147439_a(var5 + var14, var6 + var16, var7 + var15) != Blocks.chest) {
+						var0.func_147468_f(var5 + var14, var6 + var16, var7 + var15);
 					}
 				}
 			}
@@ -537,7 +515,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 		for (var14 = 0; var14 < var2 + 1; ++var14) {
 			for (var15 = 0; var15 < var3 + 1; ++var15) {
 				genStone(var0, var1, biome, var5 + var14, var6, var7 + var15);
-				if (!Odebug) {
+				if (!DEBUG) {
 					genStone(var0, var1, biome, var5 + var14, var6 + var4 - 1, var7 + var15, true);
 				}
 				if (var14 == 0 || var14 == var2 || var15 == 0 || var15 == var3) {
@@ -547,7 +525,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 				}
 			}
 		}
-		ArrayList var37 = new ArrayList();
+		ArrayList<Dun1Node> var37 = new ArrayList<Dun1Node>();
 		var15 = 0;
 		int var17;
 		int var18;
@@ -561,21 +539,21 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 		while (var15 < var8 + var1.nextInt(var8 * 5) + var1.nextInt(var8) * -1) {
 			var16 = var1.nextInt(var2 - 2) + 1;
 			var17 = var1.nextInt(var3 - 2) + 1;
-			var18 = var1.nextInt(10 - OminRoomSize + 1) + OminRoomSize;
-			var18 = var1.nextInt(var18 - OminRoomSize + 1) + OminRoomSize;
+			var18 = var1.nextInt(10 - minRoomSize + 1) + minRoomSize;
+			var18 = var1.nextInt(var18 - minRoomSize + 1) + minRoomSize;
 			boolean var19 = true;
 			var20 = true;
 			var21 = 0;
 			while (true) {
 				if (var21 < var18) {
-					if (var0.getBlockMaterial(var5 + var16 + var21, var6 + 1, var7 + var17) != Material.rock && var0.getBlockMaterial(var5 + var16 - var21, var6 + 1, var7 + var17) != Material.rock) {
+					if (var0.func_147439_a(var5 + var16 + var21, var6 + 1, var7 + var17).func_149688_o() != Material.field_151576_e && var0.func_147439_a(var5 + var16 - var21, var6 + 1, var7 + var17).func_149688_o() != Material.field_151576_e) {
 						++var21;
 						continue;
 					}
 					var20 = false;
 				}
 				for (var21 = 0; var21 < var18; ++var21) {
-					if (var0.getBlockMaterial(var5 + var16, var6 + 1, var7 + var17 + var21) == Material.rock || var0.getBlockMaterial(var5 + var16, var6 + 1, var7 + var17 - var21) == Material.rock) {
+					if (var0.func_147439_a(var5 + var16, var6 + 1, var7 + var17 + var21).func_149688_o() == Material.field_151576_e || var0.func_147439_a(var5 + var16, var6 + 1, var7 + var17 - var21).func_149688_o() == Material.field_151576_e) {
 						var19 = false;
 						break;
 					}
@@ -590,13 +568,13 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 				var23 = 1;
 				var24 = 1;
 				if (var19) {
-					for (var25 = 1; var25 < var2 && var0.getBlockMaterial(var5 + var16 + var25, var6 + 1, var7 + var17) != Material.rock; ++var25) {
+					for (var25 = 1; var25 < var2 && var0.func_147439_a(var5 + var16 + var25, var6 + 1, var7 + var17).func_149688_o() != Material.field_151576_e; ++var25) {
 						++var21;
 						for (var26 = 1; var26 < var4 - 1; ++var26) {
 							genStone(var0, var1, biome, var5 + var16 + var25, var6 + var26, var7 + var17);
 						}
 					}
-					for (var25 = 1; var25 < var2 && var0.getBlockMaterial(var5 + var16 - var25, var6 + 1, var7 + var17) != Material.rock; ++var25) {
+					for (var25 = 1; var25 < var2 && var0.func_147439_a(var5 + var16 - var25, var6 + 1, var7 + var17).func_149688_o() != Material.field_151576_e; ++var25) {
 						++var22;
 						for (var26 = 1; var26 < var4 - 1; ++var26) {
 							genStone(var0, var1, biome, var5 + var16 - var25, var6 + var26, var7 + var17);
@@ -604,13 +582,13 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 					}
 				}
 				if (var20) {
-					for (var25 = 1; var25 < var3 && var0.getBlockMaterial(var5 + var16, var6 + 1, var7 + var17 + var25) != Material.rock; ++var25) {
+					for (var25 = 1; var25 < var3 && var0.func_147439_a(var5 + var16, var6 + 1, var7 + var17 + var25).func_149688_o() != Material.field_151576_e; ++var25) {
 						++var23;
 						for (var26 = 1; var26 < var4 - 1; ++var26) {
 							genStone(var0, var1, biome, var5 + var16, var6 + var26, var7 + var17 + var25);
 						}
 					}
-					for (var25 = 1; var25 < var3 && var0.getBlockMaterial(var5 + var16, var6 + 1, var7 + var17 - var25) != Material.rock; ++var25) {
+					for (var25 = 1; var25 < var3 && var0.func_147439_a(var5 + var16, var6 + 1, var7 + var17 - var25).func_149688_o() != Material.field_151576_e; ++var25) {
 						++var24;
 						for (var26 = 1; var26 < var4 - 1; ++var26) {
 							genStone(var0, var1, biome, var5 + var16, var6 + var26, var7 + var17 - var25);
@@ -630,13 +608,13 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 		int var40;
 		int var41;
 		for (var16 = 0; var16 < var37.size() - 1; ++var16) {
-			var17 = ((Dun1Node) var37.get(var16)).wp;
-			var18 = ((Dun1Node) var37.get(var16)).wn;
-			var40 = ((Dun1Node) var37.get(var16)).lp;
-			var41 = ((Dun1Node) var37.get(var16)).ln;
-			var21 = ((Dun1Node) var37.get(var16)).x;
-			var22 = ((Dun1Node) var37.get(var16)).z;
-			var23 = ((Dun1Node) var37.get(var16)).y;
+			var17 = var37.get(var16).wp;
+			var18 = var37.get(var16).wn;
+			var40 = var37.get(var16).lp;
+			var41 = var37.get(var16).ln;
+			var21 = var37.get(var16).x;
+			var22 = var37.get(var16).z;
+			var23 = var37.get(var16).y;
 			boolean var29;
 			boolean var31;
 			boolean var30;
@@ -648,10 +626,10 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 				var1.nextInt(var40);
 				var1.nextInt(var41);
 				if (var17 > 2) {
-					var29 = var0.getBlockMaterial(var21 + var25 + 1, var23, var22) == Material.rock;
-					var30 = var0.getBlockMaterial(var21 + var25 - 1, var23, var22) == Material.rock;
-					var31 = var0.getBlockMaterial(var21 + var25, var23, var22 + 1) == Material.rock;
-					var32 = var0.getBlockMaterial(var21 + var25, var23, var22 - 1) == Material.rock;
+					var29 = var0.func_147439_a(var21 + var25 + 1, var23, var22).func_149688_o() == Material.field_151576_e;
+					var30 = var0.func_147439_a(var21 + var25 - 1, var23, var22).func_149688_o() == Material.field_151576_e;
+					var31 = var0.func_147439_a(var21 + var25, var23, var22 + 1).func_149688_o() == Material.field_151576_e;
+					var32 = var0.func_147439_a(var21 + var25, var23, var22 - 1).func_149688_o() == Material.field_151576_e;
 					var33 = 0;
 					if (var29) {
 						++var33;
@@ -666,8 +644,8 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						++var33;
 					}
 					if ((var29 && var30) ^ (var31 && var32) && var33 == 2) {
-						var0.setBlock(var21 + var25, var23, var22, 0);
-						var0.setBlock(var21 + var25, var23 + 1, var22, 0);
+						var0.func_147468_f(var21 + var25, var23, var22);
+						var0.func_147468_f(var21 + var25, var23 + 1, var22);
 					}
 				}
 			}
@@ -677,10 +655,10 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 				var1.nextInt(var40);
 				var1.nextInt(var41);
 				if (var18 > 2) {
-					var29 = var0.getBlockMaterial(var21 - var26 + 1, var23, var22) == Material.rock;
-					var30 = var0.getBlockMaterial(var21 - var26 - 1, var23, var22) == Material.rock;
-					var31 = var0.getBlockMaterial(var21 - var26, var23, var22 + 1) == Material.rock;
-					var32 = var0.getBlockMaterial(var21 - var26, var23, var22 - 1) == Material.rock;
+					var29 = var0.func_147439_a(var21 - var26 + 1, var23, var22).func_149688_o() == Material.field_151576_e;
+					var30 = var0.func_147439_a(var21 - var26 - 1, var23, var22).func_149688_o() == Material.field_151576_e;
+					var31 = var0.func_147439_a(var21 - var26, var23, var22 + 1).func_149688_o() == Material.field_151576_e;
+					var32 = var0.func_147439_a(var21 - var26, var23, var22 - 1).func_149688_o() == Material.field_151576_e;
 					var33 = 0;
 					if (var29) {
 						++var33;
@@ -695,8 +673,8 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						++var33;
 					}
 					if ((var29 && var30) ^ (var31 && var32) && var33 == 2) {
-						var0.setBlock(var21 - var26, var23, var22, 0);
-						var0.setBlock(var21 - var26, var23 + 1, var22, 0);
+						var0.func_147468_f(var21 - var26, var23, var22);
+						var0.func_147468_f(var21 - var26, var23 + 1, var22);
 					}
 				}
 			}
@@ -706,10 +684,10 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 				var27 = var1.nextInt(var40);
 				var1.nextInt(var41);
 				if (var40 > 2) {
-					var29 = var0.getBlockMaterial(var21 + 1, var23, var22 + var27) == Material.rock;
-					var30 = var0.getBlockMaterial(var21 - 1, var23, var22 + var27) == Material.rock;
-					var31 = var0.getBlockMaterial(var21, var23, var22 + 1 + var27) == Material.rock;
-					var32 = var0.getBlockMaterial(var21, var23, var22 - 1 + var27) == Material.rock;
+					var29 = var0.func_147439_a(var21 + 1, var23, var22 + var27).func_149688_o() == Material.field_151576_e;
+					var30 = var0.func_147439_a(var21 - 1, var23, var22 + var27).func_149688_o() == Material.field_151576_e;
+					var31 = var0.func_147439_a(var21, var23, var22 + 1 + var27).func_149688_o() == Material.field_151576_e;
+					var32 = var0.func_147439_a(var21, var23, var22 - 1 + var27).func_149688_o() == Material.field_151576_e;
 					var33 = 0;
 					if (var29) {
 						++var33;
@@ -724,8 +702,8 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						++var33;
 					}
 					if ((var29 && var30) ^ (var31 && var32) && var33 == 2) {
-						var0.setBlock(var21, var23, var22 + var27, 0);
-						var0.setBlock(var21, var23 + 1, var22 + var27, 0);
+						var0.func_147468_f(var21, var23, var22 + var27);
+						var0.func_147468_f(var21, var23 + 1, var22 + var27);
 					}
 				}
 			}
@@ -735,10 +713,10 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 				var1.nextInt(var40);
 				var28 = var1.nextInt(var41);
 				if (var41 > 2) {
-					var29 = var0.getBlockMaterial(var21 + 1, var23, var22 - var28) == Material.rock;
-					var30 = var0.getBlockMaterial(var21 - 1, var23, var22 - var28) == Material.rock;
-					var31 = var0.getBlockMaterial(var21, var23, var22 + 1 - var28) == Material.rock;
-					var32 = var0.getBlockMaterial(var21, var23, var22 - 1 - var28) == Material.rock;
+					var29 = var0.func_147439_a(var21 + 1, var23, var22 - var28).func_149688_o() == Material.field_151576_e;
+					var30 = var0.func_147439_a(var21 - 1, var23, var22 - var28).func_149688_o() == Material.field_151576_e;
+					var31 = var0.func_147439_a(var21, var23, var22 + 1 - var28).func_149688_o() == Material.field_151576_e;
+					var32 = var0.func_147439_a(var21, var23, var22 - 1 - var28).func_149688_o() == Material.field_151576_e;
 					var33 = 0;
 					if (var29) {
 						++var33;
@@ -753,8 +731,8 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						++var33;
 					}
 					if ((var29 && var30) ^ (var31 && var32) && var33 == 2) {
-						var0.setBlock(var21, var23, var22 - var28, 0);
-						var0.setBlock(var21, var23 + 1, var22 - var28, 0);
+						var0.func_147468_f(var21, var23, var22 - var28);
+						var0.func_147468_f(var21, var23 + 1, var22 - var28);
 					}
 				}
 			}
@@ -769,7 +747,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			var20 = false;
 			for (var21 = -1; var21 < 2; ++var21) {
 				for (var22 = -1; var22 < 2; ++var22) {
-					if (var0.getBlockMaterial(var5 + var18 + var21, var6 + 1, var7 + var40 + var22) != Material.air) {
+					if (!var0.func_147437_c(var5 + var18 + var21, var6 + 1, var7 + var40 + var22)) {
 						var20 = true;
 						break;
 					}
@@ -791,7 +769,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 					for (var28 = var6 + 4; var28 < var21; ++var28) {
 						for (var48 = -1; var48 < 2; ++var48) {
 							for (var49 = -1; var49 < 2; ++var49) {
-								var0.setBlock(var5 + var18 + var48, var28, var7 + var40 + var49, 0);
+								var0.func_147468_f(var5 + var18 + var48, var28, var7 + var40 + var49);
 							}
 						}
 					}
@@ -800,13 +778,13 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						var52 = true;
 					}
 					if (!var52 && var1.nextInt(2) == 0) {
-						var0.setBlock(var5 + var18, var6, var7 + var40, Block.waterStill.blockID);
+						var0.func_147449_b(var5 + var18, var6, var7 + var40, Blocks.water);
 						if (var1.nextInt(5) != 0) {
-							var0.setBlockToAir(var5 + var18, var6 - 1, var7 + var40);
+							var0.func_147468_f(var5 + var18, var6 - 1, var7 + var40);
 						}
 					}
 					for (var48 = 0; var48 < var21 * 4; ++var48) {
-						var0.setBlock(var5 + var18 + var23, var6 + 1 + var25, var7 + var40 + var24, BlockHalfSlab.stoneSingleSlab.blockID, var43, 2);
+						var0.func_147465_d(var5 + var18 + var23, var6 + 1 + var25, var7 + var40 + var24, Blocks.stone_slab, var43, 2);
 						if (var52) {
 							genStone(var0, var1, biome, var5 + var18, var6 + 1 + var25, var7 + var40);
 						}
@@ -838,10 +816,10 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 					var49 = var1.nextInt(9) - 4;
 					var58 = var0.getTopSolidOrLiquidBlock(var5 + var18 + var48, var7 + var40 + var49);
 					if (var58 > 0) {
-						var0.setBlock(var5 + var18 + var48, var58, var7 + var40 + var49, Block.mobSpawner.blockID);
-						TileEntityMobSpawner var57 = (TileEntityMobSpawner) var0.getBlockTileEntity(var5 + var18 + var48, var58, var7 + var40 + var49);
+						var0.func_147449_b(var5 + var18 + var48, var58, var7 + var40 + var49, Blocks.mob_spawner);
+						TileEntityMobSpawner var57 = (TileEntityMobSpawner) var0.func_147438_o(var5 + var18 + var48, var58, var7 + var40 + var49);
 						if (var57 != null) {
-							var57.getSpawnerLogic().setMobID(pickMobSpawner(var1));
+							var57.func_145881_a().setMobID(pickMobSpawner(var1));
 						} else {
 							System.err.println("Failed to fetch mob spawner entity at (" + (var5 + var18 + var48) + ", " + var58 + ", " + (var7 + var40 + var49) + ")");
 						}
@@ -850,7 +828,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 				break;
 			}
 		}
-		ArrayList var38 = new ArrayList();
+		ArrayList<DunChest> var38 = new ArrayList<DunChest>();
 		boolean var46;
 		boolean var44;
 		boolean var50;
@@ -861,10 +839,10 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			var41 = var1.nextInt(var2 - 2) + 1;
 			var21 = var1.nextInt(var3 - 2) + 1;
 			var44 = false;
-			if (var0.getBlockMaterial(var5 + var41, var6 + 1, var7 + var21) == Material.air) {
+			if (var0.func_147437_c(var5 + var41, var6 + 1, var7 + var21)) {
 				for (var23 = -1; var23 <= 1; ++var23) {
 					for (var24 = -1; var24 <= 1; ++var24) {
-						if (var0.getBlockMaterial(var5 + var41 + var23, var6 + 1, var7 + var21 + var24) == Material.rock && Math.abs(var23) == 1 ^ Math.abs(var24) == 1) {
+						if (var0.func_147439_a(var5 + var41 + var23, var6 + 1, var7 + var21 + var24).func_149688_o() == Material.field_151576_e && Math.abs(var23) == 1 ^ Math.abs(var24) == 1) {
 							var44 = true;
 							break;
 						}
@@ -874,15 +852,15 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 					}
 				}
 			}
-			boolean var42 = var0.getBlockMaterial(var5 + var41 + 1, var6 + 1, var7 + var21) == Material.rock;
-			var46 = var0.getBlockMaterial(var5 + var41 - 1, var6 + 1, var7 + var21) == Material.rock;
-			var50 = var0.getBlockMaterial(var5 + var41, var6 + 1, var7 + var21 + 1) == Material.rock;
-			var51 = var0.getBlockMaterial(var5 + var41, var6 + 1, var7 + var21 - 1) == Material.rock;
+			boolean var42 = var0.func_147439_a(var5 + var41 + 1, var6 + 1, var7 + var21).func_149688_o() == Material.field_151576_e;
+			var46 = var0.func_147439_a(var5 + var41 - 1, var6 + 1, var7 + var21).func_149688_o() == Material.field_151576_e;
+			var50 = var0.func_147439_a(var5 + var41, var6 + 1, var7 + var21 + 1).func_149688_o() == Material.field_151576_e;
+			var51 = var0.func_147439_a(var5 + var41, var6 + 1, var7 + var21 - 1).func_149688_o() == Material.field_151576_e;
 			if ((var42 && var46) ^ (var50 && var51)) {
 				var44 = false;
 			}
 			if (var44) {
-				var0.setBlock(var5 + var41, var6 + 1, var7 + var21, Block.chest.blockID);
+				var0.func_147449_b(var5 + var41, var6 + 1, var7 + var21, Blocks.chest);
 				var38.add(new DunChest(var5 + var41, var6 + 1, var7 + var21));
 			}
 		}
@@ -890,10 +868,10 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			var41 = var1.nextInt(var2 - 2) + 1;
 			var21 = var1.nextInt(var3 - 2) + 1;
 			var44 = false;
-			if (var0.getBlockMaterial(var5 + var41, var6 + 1, var7 + var21) == Material.air) {
+			if (var0.func_147437_c(var5 + var41, var6 + 1, var7 + var21)) {
 				for (var23 = -1; var23 <= 1; ++var23) {
 					for (var24 = -1; var24 <= 1; ++var24) {
-						if (var0.getBlockMaterial(var5 + var41 + var23, var6 + 2, var7 + var21 + var24) == Material.rock && Math.abs(var23) == 1 ^ Math.abs(var24) == 1) {
+						if (var0.func_147439_a(var5 + var41 + var23, var6 + 2, var7 + var21 + var24).func_149688_o() == Material.field_151576_e && Math.abs(var23) == 1 ^ Math.abs(var24) == 1) {
 							var44 = true;
 							break;
 						}
@@ -905,18 +883,14 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			}
 			if (var44) {
 				--var13;
-				var0.setBlock(var5 + var41, var6 + 2, var7 + var21, modDimTorch.blockID);
+				var0.func_147449_b(var5 + var41, var6 + 2, var7 + var21, !ID_COMPATIBILITY?modDimTorch:Blocks.redstone_torch);
 			}
 		}
 		for (var40 = 0; var40 < var8 * 6; ++var40) {
 			var41 = var1.nextInt(var2 - 2) + 1;
 			var21 = var1.nextInt(var3 - 2) + 1;
-			var44 = false;
-			if (var0.getBlockMaterial(var5 + var41, var6 + 2, var7 + var21) == Material.rock) {
-				var44 = true;
-			}
-			if (var44) {
-				var0.setBlock(var5 + var41, var6 + 2, var7 + var21, Block.fenceIron.blockID);
+			if (var0.func_147439_a(var5 + var41, var6 + 2, var7 + var21).func_149688_o() == Material.field_151576_e) {
+				var0.func_147449_b(var5 + var41, var6 + 2, var7 + var21, Blocks.iron_bars);
 			}
 		}
 		label1349: for (var40 = 0; var40 < var8 * 0.2D; ++var40) {
@@ -925,7 +899,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			var44 = true;
 			for (var23 = -2; var23 < 3; ++var23) {
 				for (var24 = -2; var24 < 3; ++var24) {
-					if (var0.getBlockId(var5 + var41 + var23, var6 + 1, var7 + var21 + var24) != 0) {
+					if (!var0.func_147437_c(var5 + var41 + var23, var6 + 1, var7 + var21 + var24)) {
 						var44 = false;
 						break;
 					}
@@ -937,32 +911,33 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			if (var44) {
 				for (var23 = -1; var23 < 2; ++var23) {
 					for (var24 = -1; var24 < 2; ++var24) {
-						var0.setBlock(var5 + var41 + var23, var6, var7 + var21 + var24, Block.grass.blockID);
+						var0.func_147449_b(var5 + var41 + var23, var6, var7 + var21 + var24, Blocks.grass);
 					}
 				}
-				ArrayList var45 = new ArrayList();
+				ArrayList<Block> var45 = new ArrayList<Block>();
 				var24 = var1.nextInt(5) + 3;
 				for (var25 = 0; var25 < var24; ++var25) {
 					var26 = var1.nextInt(6);
 					if (var26 < 3) {
-						var45.add(Integer.valueOf(Block.brewingStand.blockID));
+						var45.add(Blocks.brewing_stand);
 					} else if (var26 < 5) {
-						var45.add(Integer.valueOf(Block.cauldron.blockID));
+						var45.add(Blocks.cauldron);
 					} else if (var26 == 5) {
-						var45.add(Integer.valueOf(Block.chest.blockID));
+						var45.add(Blocks.chest);
 					}
 				}
-				ArrayList var53 = new ArrayList();
+				ArrayList<DunChest> var53 = new ArrayList<DunChest>();
+                Block block;
 				for (var26 = 0; var26 < var45.size(); ++var26) {
-					var27 = ((Integer) var45.get(var26)).intValue();
+                    block = var45.get(var26);
 					var28 = var1.nextInt(3) - 1;
 					var48 = var1.nextInt(3) - 1;
-					if (var0.getBlockId(var5 + var41 + var28, var6 + 1, var7 + var21 + var48) == 0) {
-						var0.setBlock(var5 + var41 + var28, var6 + 1, var7 + var21 + var48, var27);
-						if (var27 == Block.chest.blockID) {
+					if (var0.func_147437_c(var5 + var41 + var28, var6 + 1, var7 + var21 + var48)) {
+						var0.func_147449_b(var5 + var41 + var28, var6 + 1, var7 + var21 + var48, block);
+						if (block == Blocks.chest) {
 							var53.add(new DunChest(var5 + var41 + var28, var6 + 1, var7 + var21 + var48));
 						}
-						if (var27 == Block.cauldron.blockID) {
+						if (block == Blocks.cauldron) {
 							var0.setBlockMetadataWithNotify(var5 + var41 + var28, var6 + 1, var7 + var21 + var48, var1.nextInt(3) + 1, 3);
 						}
 					}
@@ -975,32 +950,32 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 					var27 = var1.nextInt(10) + 5;
 					for (var28 = 0; var28 < var27; ++var28) {
 						var48 = var1.nextInt(potLoot.size());
-						var49 = ((DunChest) var53.get(var26)).x;
-						var58 = ((DunChest) var53.get(var26)).y;
-						int var55 = ((DunChest) var53.get(var26)).z;
+						var49 = var53.get(var26).x;
+						var58 = var53.get(var26).y;
+						int var55 = var53.get(var26).z;
 						TileEntityChest var63 = null;
-						if (var0.getBlockId(var49, var58, var55) == Block.chest.blockID) {
-							var63 = (TileEntityChest) var0.getBlockTileEntity(var49, var58, var55);
+						if (var0.func_147439_a(var49, var58, var55) == Blocks.chest) {
+							var63 = (TileEntityChest) var0.func_147438_o(var49, var58, var55);
 						}
 						if (var63 == null) {
 							break;
 						}
 						for (int var34 = 0; var34 < 1; ++var34) {
-							ItemStack var35 = ((DunLootItem) potLoot.get(var48)).getItemStack(var1);
+							ItemStack var35 = (potLoot.get(var48)).getItemStack(var1);
 							if (var35 != null) {
 								var63.setInventorySlotContents(var1.nextInt(var63.getSizeInventory()), var35);
 							}
 						}
 					}
-					var28 = ((DunChest) var53.get(var26)).x;
-					var48 = ((DunChest) var53.get(var26)).y;
-					var49 = ((DunChest) var53.get(var26)).z;
+					var28 = var53.get(var26).x;
+					var48 = var53.get(var26).y;
+					var49 = var53.get(var26).z;
 					TileEntityChest var56 = null;
-					if (var0.getBlockId(var28, var48, var49) == Block.chest.blockID) {
-						var56 = (TileEntityChest) var0.getBlockTileEntity(var28, var48, var49);
+					if (var0.func_147439_a(var28, var48, var49) == Blocks.chest) {
+						var56 = (TileEntityChest) var0.func_147438_o(var28, var48, var49);
 					}
 					if (var56 != null) {
-						var56.setInventorySlotContents(var1.nextInt(var56.getSizeInventory()), new ItemStack(Item.glassBottle, var1.nextInt(7) + 2));
+						var56.setInventorySlotContents(var1.nextInt(var56.getSizeInventory()), new ItemStack(Items.glass_bottle, var1.nextInt(7) + 2));
 					}
 					++var26;
 				}
@@ -1035,9 +1010,9 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						if ((var25 == -1 || var25 == 2 || var26 == 0 || var26 == 4) && var1.nextInt(6) != 1) {
 							++var24;
 							if (var23 == 1) {
-								var0.setBlock(var5 + var41 + var25, var6 + var26, var7 + var21, Block.obsidian.blockID);
+								var0.func_147449_b(var5 + var41 + var25, var6 + var26, var7 + var21, Blocks.obsidian);
 							} else {
-								var0.setBlock(var5 + var41, var6 + var26, var7 + var21 + var25, Block.obsidian.blockID);
+								var0.func_147449_b(var5 + var41, var6 + var26, var7 + var21 + var25, Blocks.obsidian);
 							}
 						}
 					}
@@ -1046,9 +1021,9 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 					for (var25 = 0; var25 < 2; ++var25) {
 						for (var26 = 1; var26 < 4; ++var26) {
 							if (var23 == 1) {
-								var0.setBlock(var5 + var41 + var25, var6 + var26, var7 + var21, Block.portal.blockID);
+								var0.func_147449_b(var5 + var41 + var25, var6 + var26, var7 + var21, Blocks.portal);
 							} else {
-								var0.setBlock(var5 + var41, var6 + var26, var7 + var21 + var25, Block.portal.blockID);
+								var0.func_147449_b(var5 + var41, var6 + var26, var7 + var21 + var25, Blocks.portal);
 							}
 						}
 					}
@@ -1062,7 +1037,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			var44 = true;
 			for (var23 = -3; var23 < 4; ++var23) {
 				for (var24 = -3; var24 < 4; ++var24) {
-					if (var0.getBlockId(var5 + var41 + var23, var6 + 1, var7 + var21 + var24) != 0) {
+					if (!var0.func_147437_c(var5 + var41 + var23, var6 + 1, var7 + var21 + var24)) {
 						var44 = false;
 						break;
 					}
@@ -1074,17 +1049,17 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			if (var44) {
 				for (var23 = -2; var23 < 3; ++var23) {
 					for (var24 = -2; var24 < 3; ++var24) {
-						var0.setBlock(var5 + var41 + var23, var6, var7 + var21 + var24, Block.planks.blockID);
+						var0.func_147449_b(var5 + var41 + var23, var6, var7 + var21 + var24, Blocks.planks);
 						if ((Math.abs(var23) == 2 || Math.abs(var24) == 2) && var1.nextBoolean()) {
 							var25 = var1.nextInt(3);
 							for (var26 = 0; var26 < var25; ++var26) {
-								var0.setBlock(var5 + var41 + var23, var6 + 1 + var26, var7 + var21 + var24, Block.bookShelf.blockID);
+								var0.func_147449_b(var5 + var41 + var23, var6 + 1 + var26, var7 + var21 + var24, Blocks.bookshelf);
 								genVine(var0, var1, var5 + var41 + var23, var6 + 1 + var26, var7 + var21 + var24, biome);
 							}
 						}
 					}
 				}
-				var0.setBlock(var5 + var41, var6 + 1, var7 + var21, Block.enchantmentTable.blockID);
+				var0.func_147449_b(var5 + var41, var6 + 1, var7 + var21, Blocks.enchanting_table);
 				break;
 			}
 		}
@@ -1097,7 +1072,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			while (true) {
 				if (var23 < 3) {
 					for (var24 = -2; var24 < 3; ++var24) {
-						if (var0.getBlockMaterial(var5 + var41 + var23, var6 + 1, var7 + var21 + var24) == Material.rock) {
+						if (var0.func_147439_a(var5 + var41 + var23, var6 + 1, var7 + var21 + var24).func_149688_o() == Material.field_151576_e) {
 							var44 = false;
 							break;
 						}
@@ -1114,7 +1089,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 					for (var23 = -1; var23 < 2; ++var23) {
 						for (var24 = -1; var24 < 2; ++var24) {
 							if (var23 == 0 ^ var24 == 0 && var1.nextInt(4) == 0) {
-								var0.setBlock(var5 + var41 + var23, var6 + 2, var7 + var21 + var24, modDimTorch.blockID);
+								var0.func_147449_b(var5 + var41 + var23, var6 + 2, var7 + var21 + var24, modDimTorch);
 							}
 						}
 					}
@@ -1132,7 +1107,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			while (true) {
 				if (var23 <= 1) {
 					for (var24 = -1; var24 <= 1; ++var24) {
-						if (var0.getBlockMaterial(var5 + var41 + var23, var6 + 1, var7 + var21 + var24) == Material.rock) {
+						if (var0.func_147439_a(var5 + var41 + var23, var6 + 1, var7 + var21 + var24).func_149688_o() == Material.field_151576_e) {
 							var44 = false;
 							break;
 						}
@@ -1145,12 +1120,12 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 				if (var44) {
 					var13 += 10;
 					if (var6 + 1 > 0) {
-						var0.setBlock(var5 + var41, var6 + 1, var7 + var21, Block.mobSpawner.blockID);
-						TileEntityMobSpawner var59 = (TileEntityMobSpawner) var0.getBlockTileEntity(var5 + var41, var6 + 1, var7 + var21);
+						var0.func_147449_b(var5 + var41, var6 + 1, var7 + var21, Blocks.mob_spawner);
+						TileEntityMobSpawner var59 = (TileEntityMobSpawner) var0.func_147438_o(var5 + var41, var6 + 1, var7 + var21);
 						if (var59 != null) {
 							String var60 = pickMobSpawner(var1);
-							var59.getSpawnerLogic().setMobID(var60);
-							if (var60 == "Creeper") {
+							var59.func_145881_a().setMobID(var60);
+							if (var60.equals("Creeper")) {
 								var13 += 10;
 							}
 						} else {
@@ -1187,15 +1162,15 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			for (var26 = -1; var26 <= 2; ++var26) {
 				for (var27 = -1; var27 <= 2; ++var27) {
 					for (var28 = -1; var28 <= 2; ++var28) {
-						if (var0.getBlockMaterial(var5 + var22 + var26, var24 + var28, var7 + var23 + var27) == Material.rock) {
+						if (var0.func_147439_a(var5 + var22 + var26, var24 + var28, var7 + var23 + var27).func_149688_o() == Material.field_151576_e) {
 							++var25;
 						}
 					}
 				}
 			}
-			if (var25 > 1 && var0.getBlockId(var5 + var22, var24, var7 + var23) == 0) {
+			if (var25 > 1 && var0.func_147437_c(var5 + var22, var24, var7 + var23)) {
 				var13 += 2;
-				var0.setBlock(var5 + var22, var24, var7 + var23, Block.web.blockID);
+				var0.func_147449_b(var5 + var22, var24, var7 + var23, Blocks.web);
 			}
 		}
 		var21 = 0;
@@ -1207,7 +1182,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			while (true) {
 				if (var25 <= 8) {
 					for (var26 = -5; var26 <= 6; ++var26) {
-						if (var0.getBlockId(var5 + var22 + var25, var6 + 1, var7 + var23 + var26) == Block.mobSpawner.blockID) {
+						if (var0.func_147439_a(var5 + var22 + var25, var6 + 1, var7 + var23 + var26) == Blocks.mob_spawner) {
 							var46 = false;
 							break;
 						}
@@ -1217,32 +1192,32 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						continue;
 					}
 				}
-				if (var0.getBlockMaterial(var5 + var22, var6 + 2, var7 + var23) == Material.rock) {
+				if (var0.func_147439_a(var5 + var22, var6 + 2, var7 + var23).func_149688_o() == Material.field_151576_e) {
 					var46 = false;
 				}
 				if (var46) {
 					var13 += 4;
-					if (!OidCompatibility) {
-						var0.setBlock(var5 + var22, var6 + 1, var7 + var23, pressurePlatetest.blockID);
+					if (!ID_COMPATIBILITY) {
+						var0.func_147449_b(var5 + var22, var6 + 1, var7 + var23, pressurePlatetest);
 					} else {
-						var0.setBlock(var5 + var22, var6 + 1, var7 + var23, Block.pressurePlateStone.blockID, -1, 2);
+						var0.func_147465_d(var5 + var22, var6 + 1, var7 + var23, Blocks.stone_pressure_plate, -1, 2);
 					}
 					if (var1.nextInt(3) != 1) {
-						var0.setBlock(var5 + var22, var6, var7 + var23, Block.gravel.blockID);
+						var0.func_147449_b(var5 + var22, var6, var7 + var23, Blocks.gravel);
 					}
-					var0.setBlock(var5 + var22, var6 - 1, var7 + var23, Block.tnt.blockID);
-					var0.setBlock(var5 + var22, var6 - 2, var7 + var23, Block.stone.blockID);
+					var0.func_147449_b(var5 + var22, var6 - 1, var7 + var23, Blocks.tnt);
+					var0.func_147449_b(var5 + var22, var6 - 2, var7 + var23, Blocks.stone);
 					var50 = true;
 					for (var26 = -1; var26 < 2; ++var26) {
 						for (var27 = -1; var27 < 2; ++var27) {
-							if (var0.getBlockMaterial(var5 + var22 + var26, var6 - 3, var7 + var23 + var27) == Material.air) {
+							if (var0.func_147437_c(var5 + var22 + var26, var6 - 3, var7 + var23 + var27)) {
 								var50 = false;
 							}
 						}
 					}
 					for (var26 = -2; var26 < 3; ++var26) {
 						for (var27 = -2; var27 < 3; ++var27) {
-							if ((var26 == -2 || var26 == 2 || var27 == -2 || var27 == 2) && var0.getBlockMaterial(var5 + var22 + var26, var6 - 2, var7 + var23 + var27) == Material.air) {
+							if ((var26 == -2 || var26 == 2 || var27 == -2 || var27 == 2) && var0.func_147437_c(var5 + var22 + var26, var6 - 2, var7 + var23 + var27)) {
 								var50 = false;
 							}
 						}
@@ -1250,7 +1225,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 					if (var1.nextInt(5) == 1 && var50) {
 						for (var26 = -1; var26 < 2; ++var26) {
 							for (var27 = -1; var27 < 2; ++var27) {
-								var0.setBlock(var5 + var22 + var26, var6 - 3, var7 + var23 + var27, Block.lavaStill.blockID);
+								var0.func_147449_b(var5 + var22 + var26, var6 - 3, var7 + var23 + var27, Blocks.lava);
 							}
 						}
 					}
@@ -1263,14 +1238,14 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			var22 = var1.nextInt(var2);
 			var23 = var1.nextInt(var3);
 			TileEntityDispenser var62;
-			if (var1.nextBoolean() && var0.getBlockId(var5 + var22, var6 + 1, var7 + var23) == 0) {
+			if (var1.nextBoolean() && var0.func_147437_c(var5 + var22, var6 + 1, var7 + var23)) {
 				var46 = false;
 				var50 = false;
 				var26 = 0;
 				var27 = 0;
 				for (var28 = 0; var28 < 200; ++var28) {
-					if (var0.getBlockId(var5 + var22, var6 + 1, var7 + var23 + var28) != 0) {
-						if (var0.getBlockMaterial(var5 + var22, var6 + 1, var7 + var23 + var28) == Material.rock) {
+					if (!var0.func_147437_c(var5 + var22, var6 + 1, var7 + var23 + var28)) {
+						if (var0.func_147439_a(var5 + var22, var6 + 1, var7 + var23 + var28).func_149688_o() == Material.field_151576_e) {
 							var46 = true;
 							var26 = var28 - 1;
 						}
@@ -1279,8 +1254,8 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 				}
 				if (var46) {
 					for (var28 = 0; var28 < 200; ++var28) {
-						if (var0.getBlockId(var5 + var22, var6 + 1, var7 + var23 - var28) != 0) {
-							if (var0.getBlockMaterial(var5 + var22, var6 + 1, var7 + var23 - var28) == Material.rock) {
+						if (!var0.func_147437_c(var5 + var22, var6 + 1, var7 + var23 - var28)) {
+							if (var0.func_147439_a(var5 + var22, var6 + 1, var7 + var23 - var28).func_149688_o() == Material.field_151576_e) {
 								var50 = true;
 								var27 = var28 - 1;
 							}
@@ -1289,17 +1264,17 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 					}
 				}
 				if (var50 && var26 + var27 > 3) {
-					var0.setBlock(var5 + var22, var6 + 1, var7 + var23 + var26, modTripWireSource.blockID, 2, 2);
-					var0.setBlock(var5 + var22, var6 + 1, var7 + var23 - var27, modTripWireSource.blockID, 0, 2);
+					var0.func_147465_d(var5 + var22, var6 + 1, var7 + var23 + var26, !ID_COMPATIBILITY?modTripWireSource:Blocks.tripwire_hook, 2, 2);
+					var0.func_147465_d(var5 + var22, var6 + 1, var7 + var23 - var27, !ID_COMPATIBILITY?modTripWireSource:Blocks.tripwire_hook, 0, 2);
 					for (var28 = -var27 + 1; var28 < var26; ++var28) {
-						var0.setBlock(var5 + var22, var6 + 1, var7 + var23 + var28, modTripWire.blockID, 4, 2);
+						var0.func_147465_d(var5 + var22, var6 + 1, var7 + var23 + var28, !ID_COMPATIBILITY?modTripWire:Blocks.tripwire, 4, 2);
 					}
 					if (var1.nextBoolean()) {
-						var0.setBlock(var5 + var22, var6 + 2, var7 + var23 - var27 - 1, Block.dispenser.blockID);
+						var0.func_147449_b(var5 + var22, var6 + 2, var7 + var23 - var27 - 1, Blocks.dispenser);
 						var0.setBlockMetadataWithNotify(var5 + var22, var6 + 2, var7 + var23 - var27 - 1, 3, 3);
 						var62 = null;
-						if (var0.getBlockId(var5 + var22, var6 + 2, var7 + var23 - var27 - 1) == Block.dispenser.blockID) {
-							var62 = (TileEntityDispenser) var0.getBlockTileEntity(var5 + var22, var6 + 2, var7 + var23 - var27 - 1);
+						if (var0.func_147439_a(var5 + var22, var6 + 2, var7 + var23 - var27 - 1) == Blocks.dispenser) {
+							var62 = (TileEntityDispenser) var0.func_147438_o(var5 + var22, var6 + 2, var7 + var23 - var27 - 1);
 						}
 						if (var62 == null) {
 							break;
@@ -1307,18 +1282,18 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						var48 = var1.nextInt(5) + 1;
 						for (var49 = 0; var49 < var48; ++var49) {
 							var58 = var1.nextInt(disLoot.size());
-							if (var1.nextInt((int) ((DunLootItem) disLoot.get(var58)).rareity) == 0) {
-								var62.setInventorySlotContents(var1.nextInt(var62.getSizeInventory()), ((DunLootItem) disLoot.get(var58)).getItemStack(var1));
+							if (var1.nextInt((int) (disLoot.get(var58)).rareity) == 0) {
+								var62.setInventorySlotContents(var1.nextInt(var62.getSizeInventory()), (disLoot.get(var58)).getItemStack(var1));
 							} else {
 								--var49;
 							}
 						}
 					} else {
-						var0.setBlock(var5 + var22, var6 + 2, var7 + var23 + var26 + 1, Block.dispenser.blockID);
+						var0.func_147449_b(var5 + var22, var6 + 2, var7 + var23 + var26 + 1, Blocks.dispenser);
 						var0.setBlockMetadataWithNotify(var5 + var22, var6 + 2, var7 + var23 + var26 + 1, 2, 3);
 						var62 = null;
-						if (var0.getBlockId(var5 + var22, var6 + 2, var7 + var23 + var26 + 1) == Block.dispenser.blockID) {
-							var62 = (TileEntityDispenser) var0.getBlockTileEntity(var5 + var22, var6 + 2, var7 + var23 + var26 + 1);
+						if (var0.func_147439_a(var5 + var22, var6 + 2, var7 + var23 + var26 + 1) == Blocks.dispenser) {
+							var62 = (TileEntityDispenser) var0.func_147438_o(var5 + var22, var6 + 2, var7 + var23 + var26 + 1);
 						}
 						if (var62 == null) {
 							break;
@@ -1326,22 +1301,22 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						var48 = var1.nextInt(5) + 1;
 						for (var49 = 0; var49 < var48; ++var49) {
 							var58 = var1.nextInt(disLoot.size());
-							if (var1.nextInt((int) ((DunLootItem) disLoot.get(var58)).rareity) == 0) {
-								var62.setInventorySlotContents(var1.nextInt(var62.getSizeInventory()), ((DunLootItem) disLoot.get(var58)).getItemStack(var1));
+							if (var1.nextInt((int) (disLoot.get(var58)).rareity) == 0) {
+								var62.setInventorySlotContents(var1.nextInt(var62.getSizeInventory()), (disLoot.get(var58)).getItemStack(var1));
 							} else {
 								--var49;
 							}
 						}
 					}
 				}
-			} else if (var0.getBlockId(var5 + var22, var6 + 1, var7 + var23) == 0) {
+			} else if (var0.func_147437_c(var5 + var22, var6 + 1, var7 + var23)) {
 				var46 = false;
 				var50 = false;
 				var26 = 0;
 				var27 = 0;
 				for (var28 = 0; var28 < 200; ++var28) {
-					if (var0.getBlockId(var5 + var22 + var28, var6 + 1, var7 + var23) != 0) {
-						if (var0.getBlockMaterial(var5 + var22 + var28, var6 + 1, var7 + var23) == Material.rock) {
+					if (!var0.func_147437_c(var5 + var22 + var28, var6 + 1, var7 + var23)) {
+						if (var0.func_147439_a(var5 + var22 + var28, var6 + 1, var7 + var23).func_149688_o() == Material.field_151576_e) {
 							var46 = true;
 							var26 = var28 - 1;
 						}
@@ -1350,8 +1325,8 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 				}
 				if (var46) {
 					for (var28 = 0; var28 < 200; ++var28) {
-						if (var0.getBlockId(var5 + var22 - var28, var6 + 1, var7 + var23) != 0) {
-							if (var0.getBlockMaterial(var5 + var22 - var28, var6 + 1, var7 + var23) == Material.rock) {
+						if (!var0.func_147437_c(var5 + var22 - var28, var6 + 1, var7 + var23)) {
+							if (var0.func_147439_a(var5 + var22 - var28, var6 + 1, var7 + var23).func_149688_o() == Material.field_151576_e) {
 								var50 = true;
 								var27 = var28 - 1;
 							}
@@ -1360,17 +1335,17 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 					}
 				}
 				if (var50 && var26 + var27 > 3) {
-					var0.setBlock(var5 + var22 + var26, var6 + 1, var7 + var23, modTripWireSource.blockID, 1, 2);
-					var0.setBlock(var5 + var22 - var27, var6 + 1, var7 + var23, modTripWireSource.blockID, 3, 2);
+					var0.func_147465_d(var5 + var22 + var26, var6 + 1, var7 + var23, !ID_COMPATIBILITY?modTripWireSource:Blocks.tripwire_hook, 1, 2);
+					var0.func_147465_d(var5 + var22 - var27, var6 + 1, var7 + var23, !ID_COMPATIBILITY?modTripWireSource:Blocks.tripwire_hook, 3, 2);
 					for (var28 = -var27 + 1; var28 < var26; ++var28) {
-						var0.setBlock(var5 + var22 + var28, var6 + 1, var7 + var23, modTripWire.blockID, 4, 2);
+						var0.func_147465_d(var5 + var22 + var28, var6 + 1, var7 + var23, !ID_COMPATIBILITY?modTripWire:Blocks.tripwire, 4, 2);
 					}
 					if (var1.nextBoolean()) {
-						var0.setBlock(var5 + var22 - var27 - 1, var6 + 2, var7 + var23, Block.dispenser.blockID);
+						var0.func_147449_b(var5 + var22 - var27 - 1, var6 + 2, var7 + var23, Blocks.dispenser);
 						var0.setBlockMetadataWithNotify(var5 + var22 - var27 - 1, var6 + 2, var7 + var23, 5, 3);
 						var62 = null;
-						if (var0.getBlockId(var5 + var22 - var27 - 1, var6 + 2, var7 + var23) == Block.dispenser.blockID) {
-							var62 = (TileEntityDispenser) var0.getBlockTileEntity(var5 + var22 - var27 - 1, var6 + 2, var7 + var23);
+						if (var0.func_147439_a(var5 + var22 - var27 - 1, var6 + 2, var7 + var23) == Blocks.dispenser) {
+							var62 = (TileEntityDispenser) var0.func_147438_o(var5 + var22 - var27 - 1, var6 + 2, var7 + var23);
 						}
 						if (var62 == null) {
 							break;
@@ -1378,18 +1353,18 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						var48 = var1.nextInt(5) + 1;
 						for (var49 = 0; var49 < var48; ++var49) {
 							var58 = var1.nextInt(disLoot.size());
-							if (var1.nextInt((int) ((DunLootItem) disLoot.get(var58)).rareity) == 0) {
-								var62.setInventorySlotContents(var1.nextInt(var62.getSizeInventory()), ((DunLootItem) disLoot.get(var58)).getItemStack(var1));
+							if (var1.nextInt((int) (disLoot.get(var58)).rareity) == 0) {
+								var62.setInventorySlotContents(var1.nextInt(var62.getSizeInventory()), (disLoot.get(var58)).getItemStack(var1));
 							} else {
 								--var49;
 							}
 						}
 					} else {
-						var0.setBlock(var5 + var22 + var26 + 1, var6 + 2, var7 + var23, Block.dispenser.blockID);
+						var0.func_147449_b(var5 + var22 + var26 + 1, var6 + 2, var7 + var23, Blocks.dispenser);
 						var0.setBlockMetadataWithNotify(var5 + var22 + var26 + 1, var6 + 2, var7 + var23, 4, 3);
 						var62 = null;
-						if (var0.getBlockId(var5 + var22 + var26 + 1, var6 + 2, var7 + var23) == Block.dispenser.blockID) {
-							var62 = (TileEntityDispenser) var0.getBlockTileEntity(var5 + var22 + var26 + 1, var6 + 2, var7 + var23);
+						if (var0.func_147439_a(var5 + var22 + var26 + 1, var6 + 2, var7 + var23) == Blocks.dispenser) {
+							var62 = (TileEntityDispenser) var0.func_147438_o(var5 + var22 + var26 + 1, var6 + 2, var7 + var23);
 						}
 						if (var62 == null) {
 							break;
@@ -1397,8 +1372,8 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 						var48 = var1.nextInt(5) + 1;
 						for (var49 = 0; var49 < var48; ++var49) {
 							var58 = var1.nextInt(disLoot.size());
-							if (var1.nextInt((int) ((DunLootItem) disLoot.get(var58)).rareity) == 0) {
-								var62.setInventorySlotContents(var1.nextInt(var62.getSizeInventory()), ((DunLootItem) disLoot.get(var58)).getItemStack(var1));
+							if (var1.nextInt((int) (disLoot.get(var58)).rareity) == 0) {
+								var62.setInventorySlotContents(var1.nextInt(var62.getSizeInventory()), (disLoot.get(var58)).getItemStack(var1));
 							} else {
 								--var49;
 							}
@@ -1415,17 +1390,14 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 				for (var27 = -5; var27 < 6; ++var27) {
 					if (var26 == -5 || var26 == 5 || var27 == -5 || var27 == 5) {
 						for (var28 = var1.nextInt(var25) * -1; var28 < 100; ++var28) {
-							if (var0.getBlockMaterial(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27) != Material.air
-									&& var0.getBlockMaterial(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27) != Material.water
-									&& var0.getBlockMaterial(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27) != Material.leaves
-									&& var0.getBlockMaterial(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27) != Material.wood
-									&& var0.getBlockId(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27) != Block.tallGrass.blockID
-									&& var0.getBlockMaterial(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27) != Material.snow) {
+							if (var0.func_147439_a(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).func_149688_o() != Material.field_151579_a
+									&& var0.func_147439_a(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).func_149688_o() != Material.field_151586_h
+									&& var0.func_147439_a(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).func_149688_o() != Material.field_151584_j
+									&& var0.func_147439_a(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).func_149688_o() != Material.field_151575_d
+									&& var0.func_147439_a(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27) != Blocks.tallgrass
+									&& var0.func_147439_a(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).func_149688_o() != Material.field_151596_z) {
 								if (var28 < 0) {
-									var0.setBlock(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27, 0);
-								}
-								if (var28 == 0) {
-									;
+									var0.func_147468_f(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27);
 								}
 							} else {
 								genStone(var0, var1, biome, var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27);
@@ -1465,7 +1437,7 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 		return "";
 	}
 
-	private static void putLoot(World var0, Random var1, ArrayList var2, int var3, int var4) {
+	private static void putLoot(World var0, Random var1, ArrayList<DunChest> var2, int var3, int var4) {
 		int var5 = 0;
 		boolean var7 = false;
 		int var19;
@@ -1479,40 +1451,40 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 					var5 = 0;
 				}
 				int var10 = var1.nextInt(loot.size());
-				DunLootItem var11 = (DunLootItem) loot.get(var10);
+				DunLootItem var11 = loot.get(var10);
 				int var12 = 1;
 				if (var11.maxStack - var11.minStack > 1) {
 					var12 = var1.nextInt(var11.maxStack - var11.minStack) + var11.minStack;
 				}
 				for (var19 = 0; var19 < 100; ++var19) {
 					var10 = var1.nextInt(loot.size());
-					var11 = (DunLootItem) loot.get(var10);
+					var11 = loot.get(var10);
 					var12 = 1;
 					if (var11.maxStack - var11.minStack > 1) {
 						var12 = var1.nextInt(var11.maxStack - var11.minStack) + var11.minStack;
 					}
-					if (var1.nextInt((int) ((DunLootItem) loot.get(var10)).rareity) == 0) {
+					if (var1.nextInt((int) (loot.get(var10)).rareity) == 0) {
 						break;
 					}
 				}
-				if (var19 != 100 && var4 > ((DunLootItem) loot.get(var10)).value * var12 && ((DunLootItem) loot.get(var10)).minDanger <= var3 && var2.size() > 0) {
-					var4 = (int) (var4 - ((DunLootItem) loot.get(var10)).value * var12);
+				if (var19 != 100 && var4 > (loot.get(var10)).value * var12 && loot.get(var10).minDanger <= var3 && var2.size() > 0) {
+					var4 = (int) (var4 - (loot.get(var10)).value * var12);
 					var7 = true;
-					int var13 = ((DunChest) var2.get(var5)).x;
-					int var14 = ((DunChest) var2.get(var5)).y;
-					int var15 = ((DunChest) var2.get(var5)).z;
-					((DunChest) var2.get(var5)).looted = true;
+					int var13 = var2.get(var5).x;
+					int var14 = var2.get(var5).y;
+					int var15 = var2.get(var5).z;
+					var2.get(var5).looted = true;
 					TileEntityChest var16 = null;
-					if (var0.getBlockId(var13, var14, var15) == Block.chest.blockID) {
-						var16 = (TileEntityChest) var0.getBlockTileEntity(var13, var14, var15);
+					if (var0.func_147439_a(var13, var14, var15) == Blocks.chest) {
+						var16 = (TileEntityChest) var0.func_147438_o(var13, var14, var15);
 					}
 					if (var16 == null) {
 						break;
 					}
 					for (int var17 = 0; var17 < 1; ++var17) {
-						ItemStack var18 = ((DunLootItem) loot.get(var10)).getItemStack(var1);
-						if (((DunLootItem) loot.get(var10)).enchatProb > 0 && var1.nextInt(((DunLootItem) loot.get(var10)).enchatProb) == 0) {
-							EnchantmentHelper.addRandomEnchantment(var1, var18, ((DunLootItem) loot.get(var10)).maxEnchatLev);
+						ItemStack var18 = (loot.get(var10)).getItemStack(var1);
+						if ((loot.get(var10)).enchatProb > 0 && var1.nextInt((loot.get(var10)).enchatProb) == 0) {
+							EnchantmentHelper.addRandomEnchantment(var1, var18, (loot.get(var10)).maxEnchatLev);
 						}
 						if (var18 != null) {
 							var16.setInventorySlotContents(var1.nextInt(var16.getSizeInventory()), var18);
@@ -1522,35 +1494,95 @@ public final class NewDungeons implements IWorldGenerator, IChatListener {
 			}
 		}
 		for (var19 = 0; var19 < var2.size(); ++var19) {
-			if (!((DunChest) var2.get(var19)).looted) {
-				var0.setBlock(((DunChest) var2.get(var19)).x, ((DunChest) var2.get(var19)).y, ((DunChest) var2.get(var19)).z, 0);
+			if (!var2.get(var19).looted) {
+				var0.func_147468_f(var2.get(var19).x, var2.get(var19).y, var2.get(var19).z);
 			}
 		}
 	}
 
 	private static void setVines(World var0, int x, int y, int z) {
-		var0.setBlock(x, y, z, Block.vine.blockID);
+		var0.func_147449_b(x, y, z, Blocks.vine);
 		int var5 = new Random().nextInt(5) + 1;
 		while (var5 > 0) {
 			--y;
-			if (var0.getBlockId(x, y, z) != 0) {
+			if (!var0.func_147437_c(x, y, z)) {
 				return;
 			}
-			var0.setBlock(x, y, z, Block.vine.blockID);
+			var0.func_147449_b(x, y, z, Blocks.vine);
 			--var5;
 		}
 	}
 
 	private static void setVines(World var0, int x, int y, int z, int meta) {
-		var0.setBlock(x, y, z, Block.vine.blockID, meta, 2);
+		var0.func_147465_d(x, y, z, Blocks.vine, meta, 2);
 		int var6 = new Random().nextInt(5) + 1;
 		while (var6 > 0) {
 			--y;
-			if (var0.getBlockId(x, y, z) != 0) {
+			if (!var0.func_147437_c(x, y, z)) {
 				return;
 			}
-			var0.setBlock(x, y, z, Block.vine.blockID, meta, 2);
+			var0.func_147465_d(x, y, z, Blocks.vine, meta, 2);
 			--var6;
 		}
 	}
+
+    @Override
+    public String getCommandName() {
+        return "makeDungeon";
+    }
+
+    @Override
+    public String getCommandUsage(ICommandSender var1) {
+        return "makedungeon.usage";
+    }
+
+    @Override
+    public void processCommand(ICommandSender var1, String[] var2) {
+        if(var1 instanceof EntityPlayer)
+            serverChat((EntityPlayer)var1, var2);
+    }
+
+    @EventHandler
+    public void serverStart(FMLServerStartingEvent event){
+        event.registerServerCommand(this);
+    }
+
+    public void serverChat(EntityPlayer var1, String[] var3) {
+        if (var3!=null && var3.length >= 3) {
+            int divX, divY, divZ;
+            try{
+                divX = Integer.parseInt(var3[0]);
+                divY = Integer.parseInt(var3[1]);
+                divZ = Integer.parseInt(var3[2]);
+            }catch (Exception e){
+                return;
+            }
+            int sizeX = 5, sizeZ = 5;
+            if(var3.length==5){
+                try{
+                    sizeX = Math.abs(Integer.parseInt(var3[3]));
+                    sizeZ = Math.abs(Integer.parseInt(var3[4]));
+                    if(sizeX<5){
+                        sizeX=5;
+                    }
+                    if(sizeZ<5){
+                        sizeZ=5;
+                    }
+                }catch (Exception e){
+                    return;
+                }
+            }
+            double var8 = var1.getPlayerCoordinates().posX + divX;
+            double var9 = var1.getPlayerCoordinates().posY + divY;
+            double var10 = var1.getPlayerCoordinates().posZ + divZ;
+            Random var4 = new Random();
+            int var14 = sizeX * sizeZ / (var4.nextInt(50) + 50);
+            if(var14 < 4){
+                var14 = 4;
+            }
+            if (makeDun1(var1.worldObj, var4, sizeX, sizeZ, 5, (int) var8, (int) var9, (int) var10, var14, var1.worldObj.getWorldChunkManager().getBiomeGenAt((int) var8, (int) var10))) {
+                var1.func_146105_b(new ChatComponentTranslation("dungeon.done"));
+            }
+        }
+    }
 }

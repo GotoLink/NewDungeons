@@ -1,0 +1,4 @@
+﻿
+tile.dimTorch.name=Dim Torch
+dungeon.done=NewDungeon successfully generated!
+makedungeon.usage=/makeDungeon <relativeX> <relativeY> <relativeZ> <sizeX> <sizeZ>
