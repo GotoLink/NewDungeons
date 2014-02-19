@@ -1,4 +1,6 @@
 ﻿
 tile.dimTorch.name=Dim Torch
+tile.tripWireSourcePlayer.name=Player Special Tripwire Hook
+tile.pressurePlatePlayer.name=Player Special Pressure Plate
 dungeon.done=NewDungeon successfully generated!
-makedungeon.usage=/makeDungeon <relativeX> <relativeY> <relativeZ> <sizeX> <sizeZ>
+commands.makedungeon.usage=/makeDungeon <x> <y> <z> [sizeX] [sizeZ]

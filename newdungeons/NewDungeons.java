@@ -4,14 +4,18 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.registry.GameData;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.WrongUsageException;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -20,6 +24,7 @@ import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.tileentity.TileEntityDispenser;
 import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.biome.BiomeGenDesert;
@@ -108,12 +113,20 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
             modTripWireSource = new ModBlockTripWireSource().func_149663_c("tripWireSourcePlayer").func_149658_d("trip_wire_source").func_149675_a(true);
             GameRegistry.registerBlock(modTripWire, "TripWirePlayer");
             GameRegistry.registerBlock(modTripWireSource, "WireHookPlayer");
+            if(event.getSide().isClient()){
+                setModTripWireRender();
+            }
             GameRegistry.addShapelessRecipe(new ItemStack(Blocks.torch, 6), Items.coal, modDimTorch);
             GameRegistry.addShapelessRecipe(new ItemStack(Blocks.torch, 6), Items.flint, modDimTorch);
             GameRegistry.addShapelessRecipe(new ItemStack(Blocks.torch, 8), Items.coal, Items.stick, modDimTorch);
         }
 	}
 
+    @SideOnly(Side.CLIENT)
+    public void setModTripWireRender(){
+        ModBlockTripWire.renderID = RenderingRegistry.getNextAvailableRenderId();
+        RenderingRegistry.registerBlockHandler(ModBlockTripWire.renderID, new TripWireRender());
+    }
 
 	public static void genDun1(World var0, Random var1, int var2, int var3, BiomeGenBase biome) {
 		if (var1.nextInt(rareity) == 0) {
@@ -1533,13 +1546,12 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 
     @Override
     public String getCommandUsage(ICommandSender var1) {
-        return "makedungeon.usage";
+        return "commands.makedungeon.usage";
     }
 
     @Override
     public void processCommand(ICommandSender var1, String[] var2) {
-        if(var1 instanceof EntityPlayer)
-            serverChat((EntityPlayer)var1, var2);
+        serverChat(var1, var2);
     }
 
     @EventHandler
@@ -1547,42 +1559,34 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
         event.registerServerCommand(this);
     }
 
-    public void serverChat(EntityPlayer var1, String[] var3) {
-        if (var3!=null && var3.length >= 3) {
-            int divX, divY, divZ;
-            try{
-                divX = Integer.parseInt(var3[0]);
-                divY = Integer.parseInt(var3[1]);
-                divZ = Integer.parseInt(var3[2]);
-            }catch (Exception e){
-                return;
+    public void serverChat(ICommandSender var1, String[] var2) {
+        if (var2!=null && var2.length >= 3) {
+            int i = var1.getPlayerCoordinates().posX;
+            int j = var1.getPlayerCoordinates().posY;
+            int k = var1.getPlayerCoordinates().posZ;
+            i = MathHelper.floor_double(func_110666_a(var1, (double) i, var2[0]));
+            j = MathHelper.floor_double(func_110666_a(var1, (double) j, var2[1]));
+            k = MathHelper.floor_double(func_110666_a(var1, (double) k, var2[2]));
+            World world = var1.getEntityWorld();
+            if (!world.blockExists(i, j, k))
+            {
+                throw new CommandException("commands.setblock.outOfWorld");
             }
             int sizeX = 5, sizeZ = 5;
-            if(var3.length==5){
-                try{
-                    sizeX = Math.abs(Integer.parseInt(var3[3]));
-                    sizeZ = Math.abs(Integer.parseInt(var3[4]));
-                    if(sizeX<5){
-                        sizeX=5;
-                    }
-                    if(sizeZ<5){
-                        sizeZ=5;
-                    }
-                }catch (Exception e){
-                    return;
-                }
+            if(var2.length==5){
+                sizeX = parseIntBounded(var1, var2[3], 5, 500);
+                sizeZ = parseIntBounded(var1, var2[4], 5, 500);
             }
-            double var8 = var1.getPlayerCoordinates().posX + divX;
-            double var9 = var1.getPlayerCoordinates().posY + divY;
-            double var10 = var1.getPlayerCoordinates().posZ + divZ;
             Random var4 = new Random();
             int var14 = sizeX * sizeZ / (var4.nextInt(50) + 50);
             if(var14 < 4){
                 var14 = 4;
             }
-            if (makeDun1(var1.worldObj, var4, sizeX, sizeZ, 5, (int) var8, (int) var9, (int) var10, var14, var1.worldObj.getWorldChunkManager().getBiomeGenAt((int) var8, (int) var10))) {
-                var1.func_146105_b(new ChatComponentTranslation("dungeon.done"));
+            if (makeDun1(world, var4, sizeX, sizeZ, 5, i, j, k, var14, world.getWorldChunkManager().getBiomeGenAt(i, k))) {
+                notifyAdmins(var1, "dungeon.done");
             }
+        }else{
+            throw new WrongUsageException("commands.makedungeon.usage");
         }
     }
 }

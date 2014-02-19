@@ -35,7 +35,7 @@ public class ModBlockTripWireSource extends BlockTripWireHook {
 			l2 = par2 + i2 * i3;
 			k3 = par4 + j2 * i3;
 			j3 = par1World.func_147439_a(l2, par3, k3);
-			if (j3 == Blocks.tripwire_hook || j3 == this) {
+			if (j3 == Blocks.tripwire_hook || j3 == NewDungeons.modTripWireSource) {
 				l3 = par1World.getBlockMetadata(l2, par3, k3);
 				if ((l3 & 3) == Direction.rotateOpposite[l1]) {
 					k2 = i3;
@@ -97,18 +97,10 @@ public class ModBlockTripWireSource extends BlockTripWireHook {
 	}
 
 	public void notify(World world, int i, int j, int k, int l) {
-		try {
-            func_150134_a(world, i, j, k, l);
-		} catch (Exception e) {
-
-		}
+        func_150134_a(world, i, j, k, l);
 	}
 
 	public void sound(World world, int i, int j, int k, boolean b, boolean b1, boolean b2, boolean b3) {
-		try {
-            func_150135_a(world, i, j, k, b, b1, b2, b3);
-		} catch (Exception e) {
-
-        }
+        func_150135_a(world, i, j, k, b, b1, b2, b3);
 	}
 }

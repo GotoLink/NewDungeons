@@ -7,10 +7,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.Direction;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 public class ModBlockTripWire extends BlockTripWire {
-	protected ModBlockTripWire() {
+    public static int renderID;
+	public ModBlockTripWire() {
 		super();
 	}
 
@@ -36,7 +38,7 @@ public class ModBlockTripWire extends BlockTripWire {
 						if (j2 == Direction.rotateOpposite[i1]) {
 							((BlockTripWireHook) i2).func_150136_a(par1World, k1, par3, l1, false, par1World.getBlockMetadata(k1, par3, l1), true, j1, par5);
 						}
-					} else if (i2 == Blocks.tripwire || i2 == this) {
+					} else if (i2 == Blocks.tripwire || i2 == NewDungeons.modTripWire) {
 						++j1;
 						continue;
 					}
@@ -46,4 +48,35 @@ public class ModBlockTripWire extends BlockTripWire {
 			}
 		}
 	}
+
+    public static boolean getRenderDir(IBlockAccess world, int x, int y, int z, int l, int i) {
+        if(func_150139_a(world, x, y, z, l, i)){
+            return true;
+        }else{
+            int j1 = x + Direction.offsetX[i];
+            int k1 = z + Direction.offsetZ[i];
+            Block block = world.func_147439_a(j1, y, k1);
+            int l1;
+
+            if (block == NewDungeons.modTripWireSource)
+            {
+                l1 = world.getBlockMetadata(j1, y, k1);
+                int i2 = l1 & 3;
+                return i2 == Direction.rotateOpposite[i];
+            }
+            else if (block == NewDungeons.modTripWire)
+            {
+                l1 = world.getBlockMetadata(j1, y, k1);
+                boolean flag = (l & 2) == 2;
+                boolean flag1 = (l1 & 2) == 2;
+                return flag == flag1;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public int func_149645_b(){
+        return renderID;
+    }
 }
