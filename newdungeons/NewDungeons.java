@@ -23,7 +23,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.tileentity.TileEntityDispenser;
 import net.minecraft.tileentity.TileEntityMobSpawner;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
@@ -103,14 +102,14 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
         ID_COMPATIBILITY = !config.get("Generation", "Use custom blocks", !ID_COMPATIBILITY).getBoolean(DEBUG);
         config.save();
         if (!ID_COMPATIBILITY) {
-            pressurePlatetest = new ModPressurePlate("stone", Material.field_151576_e).func_149711_c(0.5F).func_149672_a(Block.field_149780_i)
-                    .func_149663_c("pressurePlatePlayer").func_149675_a(true);
+            pressurePlatetest = new ModPressurePlate("stone", Material.rock).setHardness(0.5F).setStepSound(Block.soundTypePiston)
+                    .setBlockName("pressurePlatePlayer").setTickRandomly(true);
             GameRegistry.registerBlock(pressurePlatetest, "PressurePlatePlayer");
-            modDimTorch = new ModBlockTorch().func_149711_c(0.0F).func_149715_a(0.5F).func_149672_a(Block.field_149766_f).func_149663_c("dimTorch").func_149658_d("torch_on")
-                .func_149675_a(true);
+            modDimTorch = new ModBlockTorch().setHardness(0.0F).setLightLevel(0.5F).setStepSound(Block.soundTypeWood).setBlockName("dimTorch").setBlockTextureName("torch_on")
+                .setTickRandomly(true);
             GameRegistry.registerBlock(modDimTorch, "DimTorch");
-            modTripWire = new ModBlockTripWire().func_149663_c("tripWirePlayer").func_149658_d("trip_wire").func_149675_a(true);
-            modTripWireSource = new ModBlockTripWireSource().func_149663_c("tripWireSourcePlayer").func_149658_d("trip_wire_source").func_149675_a(true);
+            modTripWire = new ModBlockTripWire().setBlockName("tripWirePlayer").setBlockTextureName("trip_wire").setTickRandomly(true);
+            modTripWireSource = new ModBlockTripWireSource().setBlockName("tripWireSourcePlayer").setBlockTextureName("trip_wire_source").setTickRandomly(true);
             GameRegistry.registerBlock(modTripWire, "TripWirePlayer");
             GameRegistry.registerBlock(modTripWireSource, "WireHookPlayer");
             if(event.getSide().isClient()){
@@ -184,25 +183,25 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 		if (var5 instanceof BiomeGenJungle) {
 			var6 = 2;
 		}
-		if (var1.nextInt(var6) == 0 && var0.func_147437_c(var2 - 1, var3, var4)) {
+		if (var1.nextInt(var6) == 0 && var0.isAirBlock(var2 - 1, var3, var4)) {
 			setVines(var0, var2 - 1, var3, var4, 8);
 		}
-		if (var1.nextInt(var6) == 0 && var0.func_147437_c(var2 + 1, var3, var4)) {
+		if (var1.nextInt(var6) == 0 && var0.isAirBlock(var2 + 1, var3, var4)) {
 			setVines(var0, var2 + 1, var3, var4, 2);
 		}
-		if (var1.nextInt(var6) == 0 && var0.func_147437_c(var2, var3, var4 - 1)) {
+		if (var1.nextInt(var6) == 0 && var0.isAirBlock(var2, var3, var4 - 1)) {
 			setVines(var0, var2, var3, var4 - 1, 1);
 		}
-		if (var1.nextInt(var6) == 0 && var0.func_147437_c(var2, var3, var4 + 1)) {
+		if (var1.nextInt(var6) == 0 && var0.isAirBlock(var2, var3, var4 + 1)) {
 			setVines(var0, var2, var3, var4 + 1, 4);
 		}
-		if (var1.nextInt(var6) == 0 && var0.func_147437_c(var2, var3 - 1, var4)) {
+		if (var1.nextInt(var6) == 0 && var0.isAirBlock(var2, var3 - 1, var4)) {
 			setVines(var0, var2, var3 - 1, var4 + 1);
 		}
 	}
 
 	public static boolean isEmpty(World var0, int var1, int var2, int var3) {
-		Block var4 = var0.func_147439_a(var1, var2, var3);
+		Block var4 = var0.getBlock(var1, var2, var3);
 		return var4 == Blocks.air || var4 == Blocks.vine || var4 == Blocks.web || var4 == modDimTorch;
 	}
 
@@ -406,9 +405,9 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 							return;
 						}
 					} while (var1.getTopSolidOrLiquidBlock(var6, var7) == var8);
-				} while (var1.func_147439_a(var6, var8 - 1, var7) == Blocks.water);
-				if (var1.func_147437_c(var6, var8, var7) && !var1.func_147437_c(var6, var8 - 1, var7)) {
-					var1.func_147449_b(var6, var8, var7, Blocks.chest);
+				} while (var1.getBlock(var6, var8 - 1, var7) == Blocks.water);
+				if (var1.isAirBlock(var6, var8, var7) && !var1.isAirBlock(var6, var8 - 1, var7)) {
+					var1.setBlock(var6, var8, var7, Blocks.chest);
 					ArrayList<DunChest> var9 = new ArrayList<DunChest>();
 					var9.add(new DunChest(var6, var8, var7));
 					int var10 = 60 - var8;
@@ -423,7 +422,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 	private static void generateBiomeList() {
 		for (String txt : biomesID.split(",")) {
 			if (txt.equalsIgnoreCase("ALL")) {
-				for (int i = 0; i < BiomeGenBase.func_150565_n().length; i++) {
+				for (int i = 0; i < BiomeGenBase.getBiomeGenArray().length; i++) {
 					biomes.add(i);
 				}
 			} else if (txt.startsWith("-")) {
@@ -465,7 +464,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 		byte var9 = 0;
 		boolean var10 = false;
 		if (var1.nextInt(10) == 0 && var5) {
-			var0.func_147468_f(var2, var3, var4);
+			var0.setBlockToAir(var2, var3, var4);
 			genStone(var0, var1, biome, var2, var3 + 1, var4);
 		} else {
 			while (!var10) {
@@ -503,7 +502,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 					var10 = true;
 				}
 			}
-			var0.func_147465_d(var2, var3, var4, var8, var9, 2);
+			var0.setBlock(var2, var3, var4, var8, var9, 2);
 		}
 		genVine(var0, var1, var2, var3, var4, biome);
 	}
@@ -519,8 +518,8 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 		for (var14 = 0; var14 < var2 + 1; ++var14) {
 			for (var15 = 0; var15 < var3 + 1; ++var15) {
 				for (var16 = 1; var16 < var4 - 1; ++var16) {
-					if (var0.func_147439_a(var5 + var14, var6 + var16, var7 + var15) != Blocks.chest) {
-						var0.func_147468_f(var5 + var14, var6 + var16, var7 + var15);
+					if (var0.getBlock(var5 + var14, var6 + var16, var7 + var15) != Blocks.chest) {
+						var0.setBlockToAir(var5 + var14, var6 + var16, var7 + var15);
 					}
 				}
 			}
@@ -559,14 +558,14 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 			var21 = 0;
 			while (true) {
 				if (var21 < var18) {
-					if (var0.func_147439_a(var5 + var16 + var21, var6 + 1, var7 + var17).func_149688_o() != Material.field_151576_e && var0.func_147439_a(var5 + var16 - var21, var6 + 1, var7 + var17).func_149688_o() != Material.field_151576_e) {
+					if (var0.getBlock(var5 + var16 + var21, var6 + 1, var7 + var17).getMaterial() != Material.rock && var0.getBlock(var5 + var16 - var21, var6 + 1, var7 + var17).getMaterial() != Material.rock) {
 						++var21;
 						continue;
 					}
 					var20 = false;
 				}
 				for (var21 = 0; var21 < var18; ++var21) {
-					if (var0.func_147439_a(var5 + var16, var6 + 1, var7 + var17 + var21).func_149688_o() == Material.field_151576_e || var0.func_147439_a(var5 + var16, var6 + 1, var7 + var17 - var21).func_149688_o() == Material.field_151576_e) {
+					if (var0.getBlock(var5 + var16, var6 + 1, var7 + var17 + var21).getMaterial() == Material.rock || var0.getBlock(var5 + var16, var6 + 1, var7 + var17 - var21).getMaterial() == Material.rock) {
 						var19 = false;
 						break;
 					}
@@ -581,13 +580,13 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 				var23 = 1;
 				var24 = 1;
 				if (var19) {
-					for (var25 = 1; var25 < var2 && var0.func_147439_a(var5 + var16 + var25, var6 + 1, var7 + var17).func_149688_o() != Material.field_151576_e; ++var25) {
+					for (var25 = 1; var25 < var2 && var0.getBlock(var5 + var16 + var25, var6 + 1, var7 + var17).getMaterial() != Material.rock; ++var25) {
 						++var21;
 						for (var26 = 1; var26 < var4 - 1; ++var26) {
 							genStone(var0, var1, biome, var5 + var16 + var25, var6 + var26, var7 + var17);
 						}
 					}
-					for (var25 = 1; var25 < var2 && var0.func_147439_a(var5 + var16 - var25, var6 + 1, var7 + var17).func_149688_o() != Material.field_151576_e; ++var25) {
+					for (var25 = 1; var25 < var2 && var0.getBlock(var5 + var16 - var25, var6 + 1, var7 + var17).getMaterial() != Material.rock; ++var25) {
 						++var22;
 						for (var26 = 1; var26 < var4 - 1; ++var26) {
 							genStone(var0, var1, biome, var5 + var16 - var25, var6 + var26, var7 + var17);
@@ -595,13 +594,13 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 					}
 				}
 				if (var20) {
-					for (var25 = 1; var25 < var3 && var0.func_147439_a(var5 + var16, var6 + 1, var7 + var17 + var25).func_149688_o() != Material.field_151576_e; ++var25) {
+					for (var25 = 1; var25 < var3 && var0.getBlock(var5 + var16, var6 + 1, var7 + var17 + var25).getMaterial() != Material.rock; ++var25) {
 						++var23;
 						for (var26 = 1; var26 < var4 - 1; ++var26) {
 							genStone(var0, var1, biome, var5 + var16, var6 + var26, var7 + var17 + var25);
 						}
 					}
-					for (var25 = 1; var25 < var3 && var0.func_147439_a(var5 + var16, var6 + 1, var7 + var17 - var25).func_149688_o() != Material.field_151576_e; ++var25) {
+					for (var25 = 1; var25 < var3 && var0.getBlock(var5 + var16, var6 + 1, var7 + var17 - var25).getMaterial() != Material.rock; ++var25) {
 						++var24;
 						for (var26 = 1; var26 < var4 - 1; ++var26) {
 							genStone(var0, var1, biome, var5 + var16, var6 + var26, var7 + var17 - var25);
@@ -639,10 +638,10 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 				var1.nextInt(var40);
 				var1.nextInt(var41);
 				if (var17 > 2) {
-					var29 = var0.func_147439_a(var21 + var25 + 1, var23, var22).func_149688_o() == Material.field_151576_e;
-					var30 = var0.func_147439_a(var21 + var25 - 1, var23, var22).func_149688_o() == Material.field_151576_e;
-					var31 = var0.func_147439_a(var21 + var25, var23, var22 + 1).func_149688_o() == Material.field_151576_e;
-					var32 = var0.func_147439_a(var21 + var25, var23, var22 - 1).func_149688_o() == Material.field_151576_e;
+					var29 = var0.getBlock(var21 + var25 + 1, var23, var22).getMaterial() == Material.rock;
+					var30 = var0.getBlock(var21 + var25 - 1, var23, var22).getMaterial() == Material.rock;
+					var31 = var0.getBlock(var21 + var25, var23, var22 + 1).getMaterial() == Material.rock;
+					var32 = var0.getBlock(var21 + var25, var23, var22 - 1).getMaterial() == Material.rock;
 					var33 = 0;
 					if (var29) {
 						++var33;
@@ -657,8 +656,8 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 						++var33;
 					}
 					if ((var29 && var30) ^ (var31 && var32) && var33 == 2) {
-						var0.func_147468_f(var21 + var25, var23, var22);
-						var0.func_147468_f(var21 + var25, var23 + 1, var22);
+						var0.setBlockToAir(var21 + var25, var23, var22);
+						var0.setBlockToAir(var21 + var25, var23 + 1, var22);
 					}
 				}
 			}
@@ -668,10 +667,10 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 				var1.nextInt(var40);
 				var1.nextInt(var41);
 				if (var18 > 2) {
-					var29 = var0.func_147439_a(var21 - var26 + 1, var23, var22).func_149688_o() == Material.field_151576_e;
-					var30 = var0.func_147439_a(var21 - var26 - 1, var23, var22).func_149688_o() == Material.field_151576_e;
-					var31 = var0.func_147439_a(var21 - var26, var23, var22 + 1).func_149688_o() == Material.field_151576_e;
-					var32 = var0.func_147439_a(var21 - var26, var23, var22 - 1).func_149688_o() == Material.field_151576_e;
+					var29 = var0.getBlock(var21 - var26 + 1, var23, var22).getMaterial() == Material.rock;
+					var30 = var0.getBlock(var21 - var26 - 1, var23, var22).getMaterial() == Material.rock;
+					var31 = var0.getBlock(var21 - var26, var23, var22 + 1).getMaterial() == Material.rock;
+					var32 = var0.getBlock(var21 - var26, var23, var22 - 1).getMaterial() == Material.rock;
 					var33 = 0;
 					if (var29) {
 						++var33;
@@ -686,8 +685,8 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 						++var33;
 					}
 					if ((var29 && var30) ^ (var31 && var32) && var33 == 2) {
-						var0.func_147468_f(var21 - var26, var23, var22);
-						var0.func_147468_f(var21 - var26, var23 + 1, var22);
+						var0.setBlockToAir(var21 - var26, var23, var22);
+						var0.setBlockToAir(var21 - var26, var23 + 1, var22);
 					}
 				}
 			}
@@ -697,10 +696,10 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 				var27 = var1.nextInt(var40);
 				var1.nextInt(var41);
 				if (var40 > 2) {
-					var29 = var0.func_147439_a(var21 + 1, var23, var22 + var27).func_149688_o() == Material.field_151576_e;
-					var30 = var0.func_147439_a(var21 - 1, var23, var22 + var27).func_149688_o() == Material.field_151576_e;
-					var31 = var0.func_147439_a(var21, var23, var22 + 1 + var27).func_149688_o() == Material.field_151576_e;
-					var32 = var0.func_147439_a(var21, var23, var22 - 1 + var27).func_149688_o() == Material.field_151576_e;
+					var29 = var0.getBlock(var21 + 1, var23, var22 + var27).getMaterial() == Material.rock;
+					var30 = var0.getBlock(var21 - 1, var23, var22 + var27).getMaterial() == Material.rock;
+					var31 = var0.getBlock(var21, var23, var22 + 1 + var27).getMaterial() == Material.rock;
+					var32 = var0.getBlock(var21, var23, var22 - 1 + var27).getMaterial() == Material.rock;
 					var33 = 0;
 					if (var29) {
 						++var33;
@@ -715,8 +714,8 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 						++var33;
 					}
 					if ((var29 && var30) ^ (var31 && var32) && var33 == 2) {
-						var0.func_147468_f(var21, var23, var22 + var27);
-						var0.func_147468_f(var21, var23 + 1, var22 + var27);
+						var0.setBlockToAir(var21, var23, var22 + var27);
+						var0.setBlockToAir(var21, var23 + 1, var22 + var27);
 					}
 				}
 			}
@@ -726,10 +725,10 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 				var1.nextInt(var40);
 				var28 = var1.nextInt(var41);
 				if (var41 > 2) {
-					var29 = var0.func_147439_a(var21 + 1, var23, var22 - var28).func_149688_o() == Material.field_151576_e;
-					var30 = var0.func_147439_a(var21 - 1, var23, var22 - var28).func_149688_o() == Material.field_151576_e;
-					var31 = var0.func_147439_a(var21, var23, var22 + 1 - var28).func_149688_o() == Material.field_151576_e;
-					var32 = var0.func_147439_a(var21, var23, var22 - 1 - var28).func_149688_o() == Material.field_151576_e;
+					var29 = var0.getBlock(var21 + 1, var23, var22 - var28).getMaterial() == Material.rock;
+					var30 = var0.getBlock(var21 - 1, var23, var22 - var28).getMaterial() == Material.rock;
+					var31 = var0.getBlock(var21, var23, var22 + 1 - var28).getMaterial() == Material.rock;
+					var32 = var0.getBlock(var21, var23, var22 - 1 - var28).getMaterial() == Material.rock;
 					var33 = 0;
 					if (var29) {
 						++var33;
@@ -744,8 +743,8 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 						++var33;
 					}
 					if ((var29 && var30) ^ (var31 && var32) && var33 == 2) {
-						var0.func_147468_f(var21, var23, var22 - var28);
-						var0.func_147468_f(var21, var23 + 1, var22 - var28);
+						var0.setBlockToAir(var21, var23, var22 - var28);
+						var0.setBlockToAir(var21, var23 + 1, var22 - var28);
 					}
 				}
 			}
@@ -760,7 +759,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 			var20 = false;
 			for (var21 = -1; var21 < 2; ++var21) {
 				for (var22 = -1; var22 < 2; ++var22) {
-					if (!var0.func_147437_c(var5 + var18 + var21, var6 + 1, var7 + var40 + var22)) {
+					if (!var0.isAirBlock(var5 + var18 + var21, var6 + 1, var7 + var40 + var22)) {
 						var20 = true;
 						break;
 					}
@@ -782,7 +781,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 					for (var28 = var6 + 4; var28 < var21; ++var28) {
 						for (var48 = -1; var48 < 2; ++var48) {
 							for (var49 = -1; var49 < 2; ++var49) {
-								var0.func_147468_f(var5 + var18 + var48, var28, var7 + var40 + var49);
+								var0.setBlockToAir(var5 + var18 + var48, var28, var7 + var40 + var49);
 							}
 						}
 					}
@@ -791,13 +790,13 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 						var52 = true;
 					}
 					if (!var52 && var1.nextInt(2) == 0) {
-						var0.func_147449_b(var5 + var18, var6, var7 + var40, Blocks.water);
+						var0.setBlock(var5 + var18, var6, var7 + var40, Blocks.water);
 						if (var1.nextInt(5) != 0) {
-							var0.func_147468_f(var5 + var18, var6 - 1, var7 + var40);
+							var0.setBlockToAir(var5 + var18, var6 - 1, var7 + var40);
 						}
 					}
 					for (var48 = 0; var48 < var21 * 4; ++var48) {
-						var0.func_147465_d(var5 + var18 + var23, var6 + 1 + var25, var7 + var40 + var24, Blocks.stone_slab, var43, 2);
+						var0.setBlock(var5 + var18 + var23, var6 + 1 + var25, var7 + var40 + var24, Blocks.stone_slab, var43, 2);
 						if (var52) {
 							genStone(var0, var1, biome, var5 + var18, var6 + 1 + var25, var7 + var40);
 						}
@@ -829,10 +828,10 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 					var49 = var1.nextInt(9) - 4;
 					var58 = var0.getTopSolidOrLiquidBlock(var5 + var18 + var48, var7 + var40 + var49);
 					if (var58 > 0) {
-						var0.func_147449_b(var5 + var18 + var48, var58, var7 + var40 + var49, Blocks.mob_spawner);
-						TileEntityMobSpawner var57 = (TileEntityMobSpawner) var0.func_147438_o(var5 + var18 + var48, var58, var7 + var40 + var49);
+						var0.setBlock(var5 + var18 + var48, var58, var7 + var40 + var49, Blocks.mob_spawner);
+						TileEntityMobSpawner var57 = (TileEntityMobSpawner) var0.getTileEntity(var5 + var18 + var48, var58, var7 + var40 + var49);
 						if (var57 != null) {
-							var57.func_145881_a().setMobID(pickMobSpawner(var1));
+							var57.func_145881_a().setEntityName(pickMobSpawner(var1));
 						} else {
 							System.err.println("Failed to fetch mob spawner entity at (" + (var5 + var18 + var48) + ", " + var58 + ", " + (var7 + var40 + var49) + ")");
 						}
@@ -852,10 +851,10 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 			var41 = var1.nextInt(var2 - 2) + 1;
 			var21 = var1.nextInt(var3 - 2) + 1;
 			var44 = false;
-			if (var0.func_147437_c(var5 + var41, var6 + 1, var7 + var21)) {
+			if (var0.isAirBlock(var5 + var41, var6 + 1, var7 + var21)) {
 				for (var23 = -1; var23 <= 1; ++var23) {
 					for (var24 = -1; var24 <= 1; ++var24) {
-						if (var0.func_147439_a(var5 + var41 + var23, var6 + 1, var7 + var21 + var24).func_149688_o() == Material.field_151576_e && Math.abs(var23) == 1 ^ Math.abs(var24) == 1) {
+						if (var0.getBlock(var5 + var41 + var23, var6 + 1, var7 + var21 + var24).getMaterial() == Material.rock && Math.abs(var23) == 1 ^ Math.abs(var24) == 1) {
 							var44 = true;
 							break;
 						}
@@ -865,15 +864,15 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 					}
 				}
 			}
-			boolean var42 = var0.func_147439_a(var5 + var41 + 1, var6 + 1, var7 + var21).func_149688_o() == Material.field_151576_e;
-			var46 = var0.func_147439_a(var5 + var41 - 1, var6 + 1, var7 + var21).func_149688_o() == Material.field_151576_e;
-			var50 = var0.func_147439_a(var5 + var41, var6 + 1, var7 + var21 + 1).func_149688_o() == Material.field_151576_e;
-			var51 = var0.func_147439_a(var5 + var41, var6 + 1, var7 + var21 - 1).func_149688_o() == Material.field_151576_e;
+			boolean var42 = var0.getBlock(var5 + var41 + 1, var6 + 1, var7 + var21).getMaterial() == Material.rock;
+			var46 = var0.getBlock(var5 + var41 - 1, var6 + 1, var7 + var21).getMaterial() == Material.rock;
+			var50 = var0.getBlock(var5 + var41, var6 + 1, var7 + var21 + 1).getMaterial() == Material.rock;
+			var51 = var0.getBlock(var5 + var41, var6 + 1, var7 + var21 - 1).getMaterial() == Material.rock;
 			if ((var42 && var46) ^ (var50 && var51)) {
 				var44 = false;
 			}
 			if (var44) {
-				var0.func_147449_b(var5 + var41, var6 + 1, var7 + var21, Blocks.chest);
+				var0.setBlock(var5 + var41, var6 + 1, var7 + var21, Blocks.chest);
 				var38.add(new DunChest(var5 + var41, var6 + 1, var7 + var21));
 			}
 		}
@@ -881,10 +880,10 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 			var41 = var1.nextInt(var2 - 2) + 1;
 			var21 = var1.nextInt(var3 - 2) + 1;
 			var44 = false;
-			if (var0.func_147437_c(var5 + var41, var6 + 1, var7 + var21)) {
+			if (var0.isAirBlock(var5 + var41, var6 + 1, var7 + var21)) {
 				for (var23 = -1; var23 <= 1; ++var23) {
 					for (var24 = -1; var24 <= 1; ++var24) {
-						if (var0.func_147439_a(var5 + var41 + var23, var6 + 2, var7 + var21 + var24).func_149688_o() == Material.field_151576_e && Math.abs(var23) == 1 ^ Math.abs(var24) == 1) {
+						if (var0.getBlock(var5 + var41 + var23, var6 + 2, var7 + var21 + var24).getMaterial() == Material.rock && Math.abs(var23) == 1 ^ Math.abs(var24) == 1) {
 							var44 = true;
 							break;
 						}
@@ -896,14 +895,14 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 			}
 			if (var44) {
 				--var13;
-				var0.func_147449_b(var5 + var41, var6 + 2, var7 + var21, !ID_COMPATIBILITY?modDimTorch:Blocks.redstone_torch);
+				var0.setBlock(var5 + var41, var6 + 2, var7 + var21, !ID_COMPATIBILITY?modDimTorch:Blocks.redstone_torch);
 			}
 		}
 		for (var40 = 0; var40 < var8 * 6; ++var40) {
 			var41 = var1.nextInt(var2 - 2) + 1;
 			var21 = var1.nextInt(var3 - 2) + 1;
-			if (var0.func_147439_a(var5 + var41, var6 + 2, var7 + var21).func_149688_o() == Material.field_151576_e) {
-				var0.func_147449_b(var5 + var41, var6 + 2, var7 + var21, Blocks.iron_bars);
+			if (var0.getBlock(var5 + var41, var6 + 2, var7 + var21).getMaterial() == Material.rock) {
+				var0.setBlock(var5 + var41, var6 + 2, var7 + var21, Blocks.iron_bars);
 			}
 		}
 		label1349: for (var40 = 0; var40 < var8 * 0.2D; ++var40) {
@@ -912,7 +911,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 			var44 = true;
 			for (var23 = -2; var23 < 3; ++var23) {
 				for (var24 = -2; var24 < 3; ++var24) {
-					if (!var0.func_147437_c(var5 + var41 + var23, var6 + 1, var7 + var21 + var24)) {
+					if (!var0.isAirBlock(var5 + var41 + var23, var6 + 1, var7 + var21 + var24)) {
 						var44 = false;
 						break;
 					}
@@ -924,7 +923,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 			if (var44) {
 				for (var23 = -1; var23 < 2; ++var23) {
 					for (var24 = -1; var24 < 2; ++var24) {
-						var0.func_147449_b(var5 + var41 + var23, var6, var7 + var21 + var24, Blocks.grass);
+						var0.setBlock(var5 + var41 + var23, var6, var7 + var21 + var24, Blocks.grass);
 					}
 				}
 				ArrayList<Block> var45 = new ArrayList<Block>();
@@ -945,8 +944,8 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
                     block = var45.get(var26);
 					var28 = var1.nextInt(3) - 1;
 					var48 = var1.nextInt(3) - 1;
-					if (var0.func_147437_c(var5 + var41 + var28, var6 + 1, var7 + var21 + var48)) {
-						var0.func_147449_b(var5 + var41 + var28, var6 + 1, var7 + var21 + var48, block);
+					if (var0.isAirBlock(var5 + var41 + var28, var6 + 1, var7 + var21 + var48)) {
+						var0.setBlock(var5 + var41 + var28, var6 + 1, var7 + var21 + var48, block);
 						if (block == Blocks.chest) {
 							var53.add(new DunChest(var5 + var41 + var28, var6 + 1, var7 + var21 + var48));
 						}
@@ -967,8 +966,8 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 						var58 = var53.get(var26).y;
 						int var55 = var53.get(var26).z;
 						TileEntityChest var63 = null;
-						if (var0.func_147439_a(var49, var58, var55) == Blocks.chest) {
-							var63 = (TileEntityChest) var0.func_147438_o(var49, var58, var55);
+						if (var0.getBlock(var49, var58, var55) == Blocks.chest) {
+							var63 = (TileEntityChest) var0.getTileEntity(var49, var58, var55);
 						}
 						if (var63 == null) {
 							break;
@@ -984,8 +983,8 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 					var48 = var53.get(var26).y;
 					var49 = var53.get(var26).z;
 					TileEntityChest var56 = null;
-					if (var0.func_147439_a(var28, var48, var49) == Blocks.chest) {
-						var56 = (TileEntityChest) var0.func_147438_o(var28, var48, var49);
+					if (var0.getBlock(var28, var48, var49) == Blocks.chest) {
+						var56 = (TileEntityChest) var0.getTileEntity(var28, var48, var49);
 					}
 					if (var56 != null) {
 						var56.setInventorySlotContents(var1.nextInt(var56.getSizeInventory()), new ItemStack(Items.glass_bottle, var1.nextInt(7) + 2));
@@ -1023,9 +1022,9 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 						if ((var25 == -1 || var25 == 2 || var26 == 0 || var26 == 4) && var1.nextInt(6) != 1) {
 							++var24;
 							if (var23 == 1) {
-								var0.func_147449_b(var5 + var41 + var25, var6 + var26, var7 + var21, Blocks.obsidian);
+								var0.setBlock(var5 + var41 + var25, var6 + var26, var7 + var21, Blocks.obsidian);
 							} else {
-								var0.func_147449_b(var5 + var41, var6 + var26, var7 + var21 + var25, Blocks.obsidian);
+								var0.setBlock(var5 + var41, var6 + var26, var7 + var21 + var25, Blocks.obsidian);
 							}
 						}
 					}
@@ -1034,9 +1033,9 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 					for (var25 = 0; var25 < 2; ++var25) {
 						for (var26 = 1; var26 < 4; ++var26) {
 							if (var23 == 1) {
-								var0.func_147449_b(var5 + var41 + var25, var6 + var26, var7 + var21, Blocks.portal);
+								var0.setBlock(var5 + var41 + var25, var6 + var26, var7 + var21, Blocks.portal);
 							} else {
-								var0.func_147449_b(var5 + var41, var6 + var26, var7 + var21 + var25, Blocks.portal);
+								var0.setBlock(var5 + var41, var6 + var26, var7 + var21 + var25, Blocks.portal);
 							}
 						}
 					}
@@ -1050,7 +1049,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 			var44 = true;
 			for (var23 = -3; var23 < 4; ++var23) {
 				for (var24 = -3; var24 < 4; ++var24) {
-					if (!var0.func_147437_c(var5 + var41 + var23, var6 + 1, var7 + var21 + var24)) {
+					if (!var0.isAirBlock(var5 + var41 + var23, var6 + 1, var7 + var21 + var24)) {
 						var44 = false;
 						break;
 					}
@@ -1062,17 +1061,17 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 			if (var44) {
 				for (var23 = -2; var23 < 3; ++var23) {
 					for (var24 = -2; var24 < 3; ++var24) {
-						var0.func_147449_b(var5 + var41 + var23, var6, var7 + var21 + var24, Blocks.planks);
+						var0.setBlock(var5 + var41 + var23, var6, var7 + var21 + var24, Blocks.planks);
 						if ((Math.abs(var23) == 2 || Math.abs(var24) == 2) && var1.nextBoolean()) {
 							var25 = var1.nextInt(3);
 							for (var26 = 0; var26 < var25; ++var26) {
-								var0.func_147449_b(var5 + var41 + var23, var6 + 1 + var26, var7 + var21 + var24, Blocks.bookshelf);
+								var0.setBlock(var5 + var41 + var23, var6 + 1 + var26, var7 + var21 + var24, Blocks.bookshelf);
 								genVine(var0, var1, var5 + var41 + var23, var6 + 1 + var26, var7 + var21 + var24, biome);
 							}
 						}
 					}
 				}
-				var0.func_147449_b(var5 + var41, var6 + 1, var7 + var21, Blocks.enchanting_table);
+				var0.setBlock(var5 + var41, var6 + 1, var7 + var21, Blocks.enchanting_table);
 				break;
 			}
 		}
@@ -1085,7 +1084,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 			while (true) {
 				if (var23 < 3) {
 					for (var24 = -2; var24 < 3; ++var24) {
-						if (var0.func_147439_a(var5 + var41 + var23, var6 + 1, var7 + var21 + var24).func_149688_o() == Material.field_151576_e) {
+						if (var0.getBlock(var5 + var41 + var23, var6 + 1, var7 + var21 + var24).getMaterial() == Material.rock) {
 							var44 = false;
 							break;
 						}
@@ -1102,7 +1101,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 					for (var23 = -1; var23 < 2; ++var23) {
 						for (var24 = -1; var24 < 2; ++var24) {
 							if (var23 == 0 ^ var24 == 0 && var1.nextInt(4) == 0) {
-								var0.func_147449_b(var5 + var41 + var23, var6 + 2, var7 + var21 + var24, modDimTorch);
+								var0.setBlock(var5 + var41 + var23, var6 + 2, var7 + var21 + var24, modDimTorch);
 							}
 						}
 					}
@@ -1120,7 +1119,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 			while (true) {
 				if (var23 <= 1) {
 					for (var24 = -1; var24 <= 1; ++var24) {
-						if (var0.func_147439_a(var5 + var41 + var23, var6 + 1, var7 + var21 + var24).func_149688_o() == Material.field_151576_e) {
+						if (var0.getBlock(var5 + var41 + var23, var6 + 1, var7 + var21 + var24).getMaterial() == Material.rock) {
 							var44 = false;
 							break;
 						}
@@ -1133,11 +1132,11 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 				if (var44) {
 					var13 += 10;
 					if (var6 + 1 > 0) {
-						var0.func_147449_b(var5 + var41, var6 + 1, var7 + var21, Blocks.mob_spawner);
-						TileEntityMobSpawner var59 = (TileEntityMobSpawner) var0.func_147438_o(var5 + var41, var6 + 1, var7 + var21);
+						var0.setBlock(var5 + var41, var6 + 1, var7 + var21, Blocks.mob_spawner);
+						TileEntityMobSpawner var59 = (TileEntityMobSpawner) var0.getTileEntity(var5 + var41, var6 + 1, var7 + var21);
 						if (var59 != null) {
 							String var60 = pickMobSpawner(var1);
-							var59.func_145881_a().setMobID(var60);
+							var59.func_145881_a().setEntityName(var60);
 							if (var60.equals("Creeper")) {
 								var13 += 10;
 							}
@@ -1175,15 +1174,15 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 			for (var26 = -1; var26 <= 2; ++var26) {
 				for (var27 = -1; var27 <= 2; ++var27) {
 					for (var28 = -1; var28 <= 2; ++var28) {
-						if (var0.func_147439_a(var5 + var22 + var26, var24 + var28, var7 + var23 + var27).func_149688_o() == Material.field_151576_e) {
+						if (var0.getBlock(var5 + var22 + var26, var24 + var28, var7 + var23 + var27).getMaterial() == Material.rock) {
 							++var25;
 						}
 					}
 				}
 			}
-			if (var25 > 1 && var0.func_147437_c(var5 + var22, var24, var7 + var23)) {
+			if (var25 > 1 && var0.isAirBlock(var5 + var22, var24, var7 + var23)) {
 				var13 += 2;
-				var0.func_147449_b(var5 + var22, var24, var7 + var23, Blocks.web);
+				var0.setBlock(var5 + var22, var24, var7 + var23, Blocks.web);
 			}
 		}
 		var21 = 0;
@@ -1195,7 +1194,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 			while (true) {
 				if (var25 <= 8) {
 					for (var26 = -5; var26 <= 6; ++var26) {
-						if (var0.func_147439_a(var5 + var22 + var25, var6 + 1, var7 + var23 + var26) == Blocks.mob_spawner) {
+						if (var0.getBlock(var5 + var22 + var25, var6 + 1, var7 + var23 + var26) == Blocks.mob_spawner) {
 							var46 = false;
 							break;
 						}
@@ -1205,32 +1204,32 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 						continue;
 					}
 				}
-				if (var0.func_147439_a(var5 + var22, var6 + 2, var7 + var23).func_149688_o() == Material.field_151576_e) {
+				if (var0.getBlock(var5 + var22, var6 + 2, var7 + var23).getMaterial() == Material.rock) {
 					var46 = false;
 				}
 				if (var46) {
 					var13 += 4;
 					if (!ID_COMPATIBILITY) {
-						var0.func_147449_b(var5 + var22, var6 + 1, var7 + var23, pressurePlatetest);
+						var0.setBlock(var5 + var22, var6 + 1, var7 + var23, pressurePlatetest);
 					} else {
-						var0.func_147465_d(var5 + var22, var6 + 1, var7 + var23, Blocks.stone_pressure_plate, -1, 2);
+						var0.setBlock(var5 + var22, var6 + 1, var7 + var23, Blocks.stone_pressure_plate, -1, 2);
 					}
 					if (var1.nextInt(3) != 1) {
-						var0.func_147449_b(var5 + var22, var6, var7 + var23, Blocks.gravel);
+						var0.setBlock(var5 + var22, var6, var7 + var23, Blocks.gravel);
 					}
-					var0.func_147449_b(var5 + var22, var6 - 1, var7 + var23, Blocks.tnt);
-					var0.func_147449_b(var5 + var22, var6 - 2, var7 + var23, Blocks.stone);
+					var0.setBlock(var5 + var22, var6 - 1, var7 + var23, Blocks.tnt);
+					var0.setBlock(var5 + var22, var6 - 2, var7 + var23, Blocks.stone);
 					var50 = true;
 					for (var26 = -1; var26 < 2; ++var26) {
 						for (var27 = -1; var27 < 2; ++var27) {
-							if (var0.func_147437_c(var5 + var22 + var26, var6 - 3, var7 + var23 + var27)) {
+							if (var0.isAirBlock(var5 + var22 + var26, var6 - 3, var7 + var23 + var27)) {
 								var50 = false;
 							}
 						}
 					}
 					for (var26 = -2; var26 < 3; ++var26) {
 						for (var27 = -2; var27 < 3; ++var27) {
-							if ((var26 == -2 || var26 == 2 || var27 == -2 || var27 == 2) && var0.func_147437_c(var5 + var22 + var26, var6 - 2, var7 + var23 + var27)) {
+							if ((var26 == -2 || var26 == 2 || var27 == -2 || var27 == 2) && var0.isAirBlock(var5 + var22 + var26, var6 - 2, var7 + var23 + var27)) {
 								var50 = false;
 							}
 						}
@@ -1238,7 +1237,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 					if (var1.nextInt(5) == 1 && var50) {
 						for (var26 = -1; var26 < 2; ++var26) {
 							for (var27 = -1; var27 < 2; ++var27) {
-								var0.func_147449_b(var5 + var22 + var26, var6 - 3, var7 + var23 + var27, Blocks.lava);
+								var0.setBlock(var5 + var22 + var26, var6 - 3, var7 + var23 + var27, Blocks.lava);
 							}
 						}
 					}
@@ -1251,14 +1250,14 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 			var22 = var1.nextInt(var2);
 			var23 = var1.nextInt(var3);
 			TileEntityDispenser var62;
-			if (var1.nextBoolean() && var0.func_147437_c(var5 + var22, var6 + 1, var7 + var23)) {
+			if (var1.nextBoolean() && var0.isAirBlock(var5 + var22, var6 + 1, var7 + var23)) {
 				var46 = false;
 				var50 = false;
 				var26 = 0;
 				var27 = 0;
 				for (var28 = 0; var28 < 200; ++var28) {
-					if (!var0.func_147437_c(var5 + var22, var6 + 1, var7 + var23 + var28)) {
-						if (var0.func_147439_a(var5 + var22, var6 + 1, var7 + var23 + var28).func_149688_o() == Material.field_151576_e) {
+					if (!var0.isAirBlock(var5 + var22, var6 + 1, var7 + var23 + var28)) {
+						if (var0.getBlock(var5 + var22, var6 + 1, var7 + var23 + var28).getMaterial() == Material.rock) {
 							var46 = true;
 							var26 = var28 - 1;
 						}
@@ -1267,8 +1266,8 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 				}
 				if (var46) {
 					for (var28 = 0; var28 < 200; ++var28) {
-						if (!var0.func_147437_c(var5 + var22, var6 + 1, var7 + var23 - var28)) {
-							if (var0.func_147439_a(var5 + var22, var6 + 1, var7 + var23 - var28).func_149688_o() == Material.field_151576_e) {
+						if (!var0.isAirBlock(var5 + var22, var6 + 1, var7 + var23 - var28)) {
+							if (var0.getBlock(var5 + var22, var6 + 1, var7 + var23 - var28).getMaterial() == Material.rock) {
 								var50 = true;
 								var27 = var28 - 1;
 							}
@@ -1277,17 +1276,17 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 					}
 				}
 				if (var50 && var26 + var27 > 3) {
-					var0.func_147465_d(var5 + var22, var6 + 1, var7 + var23 + var26, !ID_COMPATIBILITY?modTripWireSource:Blocks.tripwire_hook, 2, 2);
-					var0.func_147465_d(var5 + var22, var6 + 1, var7 + var23 - var27, !ID_COMPATIBILITY?modTripWireSource:Blocks.tripwire_hook, 0, 2);
+					var0.setBlock(var5 + var22, var6 + 1, var7 + var23 + var26, !ID_COMPATIBILITY?modTripWireSource:Blocks.tripwire_hook, 2, 2);
+					var0.setBlock(var5 + var22, var6 + 1, var7 + var23 - var27, !ID_COMPATIBILITY?modTripWireSource:Blocks.tripwire_hook, 0, 2);
 					for (var28 = -var27 + 1; var28 < var26; ++var28) {
-						var0.func_147465_d(var5 + var22, var6 + 1, var7 + var23 + var28, !ID_COMPATIBILITY?modTripWire:Blocks.tripwire, 4, 2);
+						var0.setBlock(var5 + var22, var6 + 1, var7 + var23 + var28, !ID_COMPATIBILITY?modTripWire:Blocks.tripwire, 4, 2);
 					}
 					if (var1.nextBoolean()) {
-						var0.func_147449_b(var5 + var22, var6 + 2, var7 + var23 - var27 - 1, Blocks.dispenser);
+						var0.setBlock(var5 + var22, var6 + 2, var7 + var23 - var27 - 1, Blocks.dispenser);
 						var0.setBlockMetadataWithNotify(var5 + var22, var6 + 2, var7 + var23 - var27 - 1, 3, 3);
 						var62 = null;
-						if (var0.func_147439_a(var5 + var22, var6 + 2, var7 + var23 - var27 - 1) == Blocks.dispenser) {
-							var62 = (TileEntityDispenser) var0.func_147438_o(var5 + var22, var6 + 2, var7 + var23 - var27 - 1);
+						if (var0.getBlock(var5 + var22, var6 + 2, var7 + var23 - var27 - 1) == Blocks.dispenser) {
+							var62 = (TileEntityDispenser) var0.getTileEntity(var5 + var22, var6 + 2, var7 + var23 - var27 - 1);
 						}
 						if (var62 == null) {
 							break;
@@ -1302,11 +1301,11 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 							}
 						}
 					} else {
-						var0.func_147449_b(var5 + var22, var6 + 2, var7 + var23 + var26 + 1, Blocks.dispenser);
+						var0.setBlock(var5 + var22, var6 + 2, var7 + var23 + var26 + 1, Blocks.dispenser);
 						var0.setBlockMetadataWithNotify(var5 + var22, var6 + 2, var7 + var23 + var26 + 1, 2, 3);
 						var62 = null;
-						if (var0.func_147439_a(var5 + var22, var6 + 2, var7 + var23 + var26 + 1) == Blocks.dispenser) {
-							var62 = (TileEntityDispenser) var0.func_147438_o(var5 + var22, var6 + 2, var7 + var23 + var26 + 1);
+						if (var0.getBlock(var5 + var22, var6 + 2, var7 + var23 + var26 + 1) == Blocks.dispenser) {
+							var62 = (TileEntityDispenser) var0.getTileEntity(var5 + var22, var6 + 2, var7 + var23 + var26 + 1);
 						}
 						if (var62 == null) {
 							break;
@@ -1322,14 +1321,14 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 						}
 					}
 				}
-			} else if (var0.func_147437_c(var5 + var22, var6 + 1, var7 + var23)) {
+			} else if (var0.isAirBlock(var5 + var22, var6 + 1, var7 + var23)) {
 				var46 = false;
 				var50 = false;
 				var26 = 0;
 				var27 = 0;
 				for (var28 = 0; var28 < 200; ++var28) {
-					if (!var0.func_147437_c(var5 + var22 + var28, var6 + 1, var7 + var23)) {
-						if (var0.func_147439_a(var5 + var22 + var28, var6 + 1, var7 + var23).func_149688_o() == Material.field_151576_e) {
+					if (!var0.isAirBlock(var5 + var22 + var28, var6 + 1, var7 + var23)) {
+						if (var0.getBlock(var5 + var22 + var28, var6 + 1, var7 + var23).getMaterial() == Material.rock) {
 							var46 = true;
 							var26 = var28 - 1;
 						}
@@ -1338,8 +1337,8 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 				}
 				if (var46) {
 					for (var28 = 0; var28 < 200; ++var28) {
-						if (!var0.func_147437_c(var5 + var22 - var28, var6 + 1, var7 + var23)) {
-							if (var0.func_147439_a(var5 + var22 - var28, var6 + 1, var7 + var23).func_149688_o() == Material.field_151576_e) {
+						if (!var0.isAirBlock(var5 + var22 - var28, var6 + 1, var7 + var23)) {
+							if (var0.getBlock(var5 + var22 - var28, var6 + 1, var7 + var23).getMaterial() == Material.rock) {
 								var50 = true;
 								var27 = var28 - 1;
 							}
@@ -1348,17 +1347,17 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 					}
 				}
 				if (var50 && var26 + var27 > 3) {
-					var0.func_147465_d(var5 + var22 + var26, var6 + 1, var7 + var23, !ID_COMPATIBILITY?modTripWireSource:Blocks.tripwire_hook, 1, 2);
-					var0.func_147465_d(var5 + var22 - var27, var6 + 1, var7 + var23, !ID_COMPATIBILITY?modTripWireSource:Blocks.tripwire_hook, 3, 2);
+					var0.setBlock(var5 + var22 + var26, var6 + 1, var7 + var23, !ID_COMPATIBILITY?modTripWireSource:Blocks.tripwire_hook, 1, 2);
+					var0.setBlock(var5 + var22 - var27, var6 + 1, var7 + var23, !ID_COMPATIBILITY?modTripWireSource:Blocks.tripwire_hook, 3, 2);
 					for (var28 = -var27 + 1; var28 < var26; ++var28) {
-						var0.func_147465_d(var5 + var22 + var28, var6 + 1, var7 + var23, !ID_COMPATIBILITY?modTripWire:Blocks.tripwire, 4, 2);
+						var0.setBlock(var5 + var22 + var28, var6 + 1, var7 + var23, !ID_COMPATIBILITY?modTripWire:Blocks.tripwire, 4, 2);
 					}
 					if (var1.nextBoolean()) {
-						var0.func_147449_b(var5 + var22 - var27 - 1, var6 + 2, var7 + var23, Blocks.dispenser);
+						var0.setBlock(var5 + var22 - var27 - 1, var6 + 2, var7 + var23, Blocks.dispenser);
 						var0.setBlockMetadataWithNotify(var5 + var22 - var27 - 1, var6 + 2, var7 + var23, 5, 3);
 						var62 = null;
-						if (var0.func_147439_a(var5 + var22 - var27 - 1, var6 + 2, var7 + var23) == Blocks.dispenser) {
-							var62 = (TileEntityDispenser) var0.func_147438_o(var5 + var22 - var27 - 1, var6 + 2, var7 + var23);
+						if (var0.getBlock(var5 + var22 - var27 - 1, var6 + 2, var7 + var23) == Blocks.dispenser) {
+							var62 = (TileEntityDispenser) var0.getTileEntity(var5 + var22 - var27 - 1, var6 + 2, var7 + var23);
 						}
 						if (var62 == null) {
 							break;
@@ -1373,11 +1372,11 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 							}
 						}
 					} else {
-						var0.func_147449_b(var5 + var22 + var26 + 1, var6 + 2, var7 + var23, Blocks.dispenser);
+						var0.setBlock(var5 + var22 + var26 + 1, var6 + 2, var7 + var23, Blocks.dispenser);
 						var0.setBlockMetadataWithNotify(var5 + var22 + var26 + 1, var6 + 2, var7 + var23, 4, 3);
 						var62 = null;
-						if (var0.func_147439_a(var5 + var22 + var26 + 1, var6 + 2, var7 + var23) == Blocks.dispenser) {
-							var62 = (TileEntityDispenser) var0.func_147438_o(var5 + var22 + var26 + 1, var6 + 2, var7 + var23);
+						if (var0.getBlock(var5 + var22 + var26 + 1, var6 + 2, var7 + var23) == Blocks.dispenser) {
+							var62 = (TileEntityDispenser) var0.getTileEntity(var5 + var22 + var26 + 1, var6 + 2, var7 + var23);
 						}
 						if (var62 == null) {
 							break;
@@ -1403,14 +1402,14 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 				for (var27 = -5; var27 < 6; ++var27) {
 					if (var26 == -5 || var26 == 5 || var27 == -5 || var27 == 5) {
 						for (var28 = var1.nextInt(var25) * -1; var28 < 100; ++var28) {
-							if (var0.func_147439_a(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).func_149688_o() != Material.field_151579_a
-									&& var0.func_147439_a(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).func_149688_o() != Material.field_151586_h
-									&& var0.func_147439_a(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).func_149688_o() != Material.field_151584_j
-									&& var0.func_147439_a(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).func_149688_o() != Material.field_151575_d
-									&& var0.func_147439_a(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27) != Blocks.tallgrass
-									&& var0.func_147439_a(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).func_149688_o() != Material.field_151596_z) {
+							if (var0.getBlock(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).getMaterial() != Material.air
+									&& var0.getBlock(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).getMaterial() != Material.water
+									&& var0.getBlock(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).getMaterial() != Material.leaves
+									&& var0.getBlock(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).getMaterial() != Material.wood
+									&& var0.getBlock(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27) != Blocks.tallgrass
+									&& var0.getBlock(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27).getMaterial() != Material.craftedSnow) {
 								if (var28 < 0) {
-									var0.func_147468_f(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27);
+									var0.setBlockToAir(var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27);
 								}
 							} else {
 								genStone(var0, var1, biome, var5 + var10 + var26, var12 + 1 - var28, var7 + var11 + var27);
@@ -1488,8 +1487,8 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 					int var15 = var2.get(var5).z;
 					var2.get(var5).looted = true;
 					TileEntityChest var16 = null;
-					if (var0.func_147439_a(var13, var14, var15) == Blocks.chest) {
-						var16 = (TileEntityChest) var0.func_147438_o(var13, var14, var15);
+					if (var0.getBlock(var13, var14, var15) == Blocks.chest) {
+						var16 = (TileEntityChest) var0.getTileEntity(var13, var14, var15);
 					}
 					if (var16 == null) {
 						break;
@@ -1508,33 +1507,33 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 		}
 		for (var19 = 0; var19 < var2.size(); ++var19) {
 			if (!var2.get(var19).looted) {
-				var0.func_147468_f(var2.get(var19).x, var2.get(var19).y, var2.get(var19).z);
+				var0.setBlockToAir(var2.get(var19).x, var2.get(var19).y, var2.get(var19).z);
 			}
 		}
 	}
 
 	private static void setVines(World var0, int x, int y, int z) {
-		var0.func_147449_b(x, y, z, Blocks.vine);
+		var0.setBlock(x, y, z, Blocks.vine);
 		int var5 = new Random().nextInt(5) + 1;
 		while (var5 > 0) {
 			--y;
-			if (!var0.func_147437_c(x, y, z)) {
+			if (!var0.isAirBlock(x, y, z)) {
 				return;
 			}
-			var0.func_147449_b(x, y, z, Blocks.vine);
+			var0.setBlock(x, y, z, Blocks.vine);
 			--var5;
 		}
 	}
 
 	private static void setVines(World var0, int x, int y, int z, int meta) {
-		var0.func_147465_d(x, y, z, Blocks.vine, meta, 2);
+		var0.setBlock(x, y, z, Blocks.vine, meta, 2);
 		int var6 = new Random().nextInt(5) + 1;
 		while (var6 > 0) {
 			--y;
-			if (!var0.func_147437_c(x, y, z)) {
+			if (!var0.isAirBlock(x, y, z)) {
 				return;
 			}
-			var0.func_147465_d(x, y, z, Blocks.vine, meta, 2);
+			var0.setBlock(x, y, z, Blocks.vine, meta, 2);
 			--var6;
 		}
 	}

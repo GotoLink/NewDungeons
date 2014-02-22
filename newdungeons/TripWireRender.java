@@ -16,17 +16,17 @@ public class TripWireRender implements ISimpleBlockRenderingHandler{
     @Override
     public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
         Tessellator tessellator = Tessellator.instance;
-        IIcon iicon = renderer.func_147777_a(block, 0);
+        IIcon iicon = renderer.getBlockIconFromSide(block, 0);
         int l = world.getBlockMetadata(x, y, z);
         boolean flag = (l & 4) == 4;
         boolean flag1 = (l & 2) == 2;
 
-        if (renderer.func_147744_b())
+        if (renderer.hasOverrideBlockTexture())
         {
-            iicon = renderer.field_147840_d;
+            iicon = renderer.overrideBlockTexture;
         }
 
-        tessellator.setBrightness(block.func_149677_c(world, x, y, z));
+        tessellator.setBrightness(block.getMixedBrightnessForBlock(world, x, y, z));
         tessellator.setColorOpaque_F(1.0F, 1.0F, 1.0F);
         double d0 = (double)iicon.getMinU();
         double d1 = (double)iicon.getInterpolatedV(flag ? 2.0D : 0.0D);

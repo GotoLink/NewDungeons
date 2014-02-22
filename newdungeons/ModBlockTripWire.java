@@ -17,9 +17,9 @@ public class ModBlockTripWire extends BlockTripWire {
 	}
 
 	@Override
-	public void func_149670_a(World var1, int var2, int var3, int var4, Entity var5) {
+	public void onEntityCollidedWithBlock(World var1, int var2, int var3, int var4, Entity var5) {
 		if (var5 instanceof EntityPlayer) {
-			super.func_149670_a(var1, var2, var3, var4, var5);
+			super.onEntityCollidedWithBlock(var1, var2, var3, var4, var5);
 		}
 	}
 
@@ -32,7 +32,7 @@ public class ModBlockTripWire extends BlockTripWire {
 				if (j1 < 42) {
 					int k1 = par2 + Direction.offsetX[i1] * j1;
 					int l1 = par4 + Direction.offsetZ[i1] * j1;
-					Block i2 = par1World.func_147439_a(k1, par3, l1);
+					Block i2 = par1World.getBlock(k1, par3, l1);
 					if (i2 == Blocks.tripwire_hook || i2 == NewDungeons.modTripWireSource) {
 						int j2 = par1World.getBlockMetadata(k1, par3, l1) & 3;
 						if (j2 == Direction.rotateOpposite[i1]) {
@@ -55,7 +55,7 @@ public class ModBlockTripWire extends BlockTripWire {
         }else{
             int j1 = x + Direction.offsetX[i];
             int k1 = z + Direction.offsetZ[i];
-            Block block = world.func_147439_a(j1, y, k1);
+            Block block = world.getBlock(j1, y, k1);
             int l1;
 
             if (block == NewDungeons.modTripWireSource)
@@ -76,7 +76,7 @@ public class ModBlockTripWire extends BlockTripWire {
     }
 
     @Override
-    public int func_149645_b(){
+    public int getRenderType(){
         return renderID;
     }
 }

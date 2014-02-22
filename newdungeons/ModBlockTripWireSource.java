@@ -34,7 +34,7 @@ public class ModBlockTripWireSource extends BlockTripWireHook {
 		for (i3 = 1; i3 < 42; ++i3) {
 			l2 = par2 + i2 * i3;
 			k3 = par4 + j2 * i3;
-			j3 = par1World.func_147439_a(l2, par3, k3);
+			j3 = par1World.getBlock(l2, par3, k3);
 			if (j3 == Blocks.tripwire_hook || j3 == NewDungeons.modTripWireSource) {
 				l3 = par1World.getBlockMetadata(l2, par3, k3);
 				if ((l3 & 3) == Direction.rotateOpposite[l1]) {
@@ -54,7 +54,7 @@ public class ModBlockTripWireSource extends BlockTripWireHook {
 				flag4 |= flag6 && flag7;
 				aint[i3] = l3;
 				if (i3 == par8) {
-					par1World.func_147464_a(par2, par3, par4, this, this.func_149738_a(par1World));
+					par1World.scheduleBlockUpdate(par2, par3, par4, this, this.tickRate(par1World));
 					flag3 &= flag6;
 				}
 			}

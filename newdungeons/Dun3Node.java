@@ -83,24 +83,24 @@ public class Dun3Node {
 		for (int var2 = 0; var2 < 4; ++var2) {
 			int var3;
 			for (var3 = 0; var3 < this.xpd; ++var3) {
-				var1.func_147468_f(this.x + var3, this.y + var2, this.z + 1);
-				var1.func_147468_f(this.x + var3, this.y + var2, this.z);
-				var1.func_147468_f(this.x + var3, this.y + var2, this.z - 1);
+				var1.setBlockToAir(this.x + var3, this.y + var2, this.z + 1);
+				var1.setBlockToAir(this.x + var3, this.y + var2, this.z);
+				var1.setBlockToAir(this.x + var3, this.y + var2, this.z - 1);
 			}
 			for (var3 = 0; var3 < this.xnd; ++var3) {
-				var1.func_147468_f(this.x - var3, this.y + var2, this.z + 1);
-				var1.func_147468_f(this.x - var3, this.y + var2, this.z);
-				var1.func_147468_f(this.x - var3, this.y + var2, this.z - 1);
+				var1.setBlockToAir(this.x - var3, this.y + var2, this.z + 1);
+				var1.setBlockToAir(this.x - var3, this.y + var2, this.z);
+				var1.setBlockToAir(this.x - var3, this.y + var2, this.z - 1);
 			}
 			for (var3 = 0; var3 < this.zpd; ++var3) {
-				var1.func_147468_f(this.x + 1, this.y + var2, this.z + var3);
-				var1.func_147468_f(this.x, this.y + var2, this.z + var3);
-				var1.func_147468_f(this.x - 1, this.y + var2, this.z + var3);
+				var1.setBlockToAir(this.x + 1, this.y + var2, this.z + var3);
+				var1.setBlockToAir(this.x, this.y + var2, this.z + var3);
+				var1.setBlockToAir(this.x - 1, this.y + var2, this.z + var3);
 			}
 			for (var3 = 0; var3 < this.znd; ++var3) {
-				var1.func_147468_f(this.x + 1, this.y + var2, this.z - var3);
-				var1.func_147468_f(this.x, this.y + var2, this.z - var3);
-				var1.func_147468_f(this.x - 1, this.y + var2, this.z - var3);
+				var1.setBlockToAir(this.x + 1, this.y + var2, this.z - var3);
+				var1.setBlockToAir(this.x, this.y + var2, this.z - var3);
+				var1.setBlockToAir(this.x - 1, this.y + var2, this.z - var3);
 			}
 		}
 		if (this.xp != null) {

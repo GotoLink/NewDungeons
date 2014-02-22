@@ -13,7 +13,7 @@ public class ModPressurePlate extends BlockPressurePlate {
 	}
 
 	@Override
-	public Item func_149650_a(int var1, Random var2, int var3) {
-		return Blocks.stone_pressure_plate.func_149650_a(0, var2, var3);
+	public Item getItemDropped(int var1, Random var2, int var3) {
+		return Blocks.stone_pressure_plate.getItemDropped(0, var2, var3);
 	}
 }
