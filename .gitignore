@@ -3,6 +3,8 @@
 
 !gitignore
 !build.gradle
+!/gradle/
+!gradle*
 !mcmod.info
 !*.cfg
 !pack.mcmeta
@@ -10,3 +12,5 @@
 !assets/*
 !/newdungeons/
 !newdungeons/*
+!update.xml
+!changelog.md

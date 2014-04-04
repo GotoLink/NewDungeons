@@ -5,16 +5,15 @@ import java.util.HashSet;
 import java.util.Random;
 
 import cpw.mods.fml.client.registry.RenderingRegistry;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.command.CommandBase;
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.command.WrongUsageException;
+import net.minecraft.command.*;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -42,7 +41,7 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 
-@Mod(modid = "newdungeons", name = "New Dungeons", version = "1.7.2")
+@Mod(modid = "newdungeons", name = "New Dungeons", useMetadata = true)
 public final class NewDungeons extends CommandBase implements IWorldGenerator {
 	public static Block pressurePlatetest, modDimTorch, modTripWire, modTripWireSource;
 	static ArrayList<DunLootItem> loot = new ArrayList<DunLootItem>(), potLoot = new ArrayList<DunLootItem>(), disLoot = new ArrayList<DunLootItem>();
@@ -114,6 +113,16 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
             GameRegistry.registerBlock(modTripWireSource, "WireHookPlayer");
             if(event.getSide().isClient()){
                 setModTripWireRender();
+                if(event.getSourceFile().getName().endsWith(".jar")){
+                    try {
+                        Class.forName("mods.mud.ModUpdateDetector").getDeclaredMethod("registerMod", ModContainer.class, String.class, String.class).invoke(null,
+                                FMLCommonHandler.instance().findContainerFor(this),
+                                "https://raw.github.com/GotoLink/NewDungeons/master/update.xml",
+                                "https://raw.github.com/GotoLink/NewDungeons/master/changelog.md"
+                        );
+                    } catch (Throwable e) {
+                    }
+                }
             }
             GameRegistry.addShapelessRecipe(new ItemStack(Blocks.torch, 6), Items.coal, modDimTorch);
             GameRegistry.addShapelessRecipe(new ItemStack(Blocks.torch, 6), Items.flint, modDimTorch);
@@ -1587,5 +1596,10 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
         }else{
             throw new WrongUsageException("commands.makedungeon.usage");
         }
+    }
+
+    @Override
+    public int compareTo(Object obj){
+        return compareTo((ICommand)obj);
     }
 }

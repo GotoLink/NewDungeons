@@ -1,0 +1,22 @@
+<mod modid="newdungeons">
+    <mcVersion version="1.7.2">
+        <release type="release" version="0.3"
+                 url="http://www.minecraftforum.net/topic/1651891-"
+                 download="http://www.mediafire.com/download/9kn3z7ogjn208aq/NewDungeons-0.3(1.7.2).jar"
+                 md5="124963078D770F05AFD691C5E659767F"
+                />
+    </mcVersion>
+	<mcVersion version="1.6.4">
+        <release type="release" version="0.2"
+                 url="http://www.minecraftforum.net/topic/1651891-"
+                 download="http://www.mediafire.com/download/t9qk635qqyvrvds/NewDungeons_1.6.4.zip"
+                 md5="9C1AC37B83EF1BB4D8405AADC851F048"
+                />
+    </mcVersion>
+    <mcVersion version="1.5.2">
+        <release type="release" version="0.1"
+                 url="http://www.minecraftforum.net/topic/1651891-"
+                 download="http://www.mediafire.com/download/i1apjz1e8ex9uuj/NewDungeonsUnofficial_1.5.2.zip"
+                />
+    </mcVersion>
+</mod>
