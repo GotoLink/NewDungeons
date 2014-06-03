@@ -11,17 +11,17 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionHelper;
 
 public class DunLootItem {
-	Object item;
-	int maxStack;
-	int minStack;
-	double rareity;
-	double value;
-	int minDanger;
+	final Object item;
+	final int maxStack;
+	final int minStack;
+	final double rareity;
+	final double value;
+	final int minDanger;
 	private HashMap idEffectNameMap;
-	int maxEnchatLev;
-	int enchatProb;
-	int damigeValueMin;
-	int damigeValueMax;
+	final int maxEnchatLev;
+	final int enchatProb;
+	final int damigeValueMin;
+	final int damigeValueMax;
 
 	DunLootItem(Item var1, int var2, int var3, double var4, double var6, int var8, int var9, int var10, int var11, int var12) {
 		this.item = var1;
@@ -117,7 +117,7 @@ public class DunLootItem {
 		List var2 = (List) this.idEffectNameMap.get(Integer.valueOf(var1));
 		if (var2 == null) {
 			var2 = PotionHelper.getPotionEffects(var1, false);
-			this.idEffectNameMap.put(Integer.valueOf(var1), var2);
+			this.idEffectNameMap.put(var1, var2);
 		}
 		return var2;
 	}

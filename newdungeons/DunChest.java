@@ -1,9 +1,9 @@
 package newdungeons;
 
 public class DunChest {
-	int x;
-	int y;
-	int z;
+	final int x;
+	final int y;
+	final int z;
 	boolean looted = false;
 
 	DunChest(int var1, int var2, int var3) {

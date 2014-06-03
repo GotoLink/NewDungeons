@@ -1,22 +1,16 @@
 package newdungeons;
 
 public class Dun1Node {
-	public int wp;
-	public int wn;
-	public int lp;
-	public int ln;
-	public int x;
-	public int y;
-	public int z;
+	public final int wp;
+	public final int wn;
+	public final int lp;
+	public final int ln;
+	public final int x;
+	public final int y;
+	public final int z;
 
 	Dun1Node() {
-		this.wp = 0;
-		this.wn = 0;
-		this.lp = 0;
-		this.ln = 0;
-		this.x = 0;
-		this.z = 0;
-		this.y = 0;
+		this(0, 0, 0, 0, 0, 0, 0);
 	}
 
 	Dun1Node(int var1, int var2, int var3, int var4, int var5, int var6, int var7) {

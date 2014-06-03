@@ -5,9 +5,9 @@ import java.util.Random;
 import net.minecraft.world.World;
 
 public class Dun3Node {
-	private int x;
-	private int y;
-	private int z;
+	private final int x;
+	private final int y;
+	private final int z;
 	private Dun3Node xp;
 	private Dun3Node xn;
 	private Dun3Node zp;
@@ -17,20 +17,17 @@ public class Dun3Node {
 	private int zpd;
 	private int znd;
 	private int nodesLeft;
-	private int nodeChance = 2;
-	private int minDis = 10;
-	private int maxDis = 20;
-	private boolean madeNodes = false;
+	public int nodeChance = 2;
+	public int minDis = 10;
+	public int maxDis = 20;
+	public boolean madeNodes = false;
 
 	Dun3Node() {
-		this.x = 0;
-		this.y = 60;
-		this.z = 0;
+		this(0, 60, 0, 0);
 		this.xp = null;
 		this.xn = null;
 		this.zp = null;
 		this.zn = null;
-		this.nodesLeft = 0;
 	}
 
 	Dun3Node(int var1, int var2, int var3, int var4) {
