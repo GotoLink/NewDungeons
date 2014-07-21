@@ -1591,7 +1591,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
                 var14 = 4;
             }
             if (makeDun1(world, var4, sizeX, sizeZ, 5, i, j, k, var14, world.getWorldChunkManager().getBiomeGenAt(i, k))) {
-                notifyAdmins(var1, "dungeon.done");
+                func_152373_a(var1, this, "dungeon.done");
             }
         }else{
             throw new WrongUsageException("commands.makedungeon.usage");
