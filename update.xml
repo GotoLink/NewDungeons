@@ -1,4 +1,11 @@
 <mod modid="newdungeons">
+    <mcVersion version="1.7.10">
+        <release type="release" version="0.3"
+                 url="http://www.minecraftforum.net/topic/1651891-/#NewDungeons"
+                 download="http://www.mediafire.com/download/6mnqk46cdbn6zlz/NewDungeons-0.3(1.7.10).jar"
+                 md5="2B65EB3454785C78C097D3DBF45BE593"
+                />
+    </mcVersion>
     <mcVersion version="1.7.2">
         <release type="release" version="0.3"
                  url="http://www.minecraftforum.net/topic/1651891-/#NewDungeons"
