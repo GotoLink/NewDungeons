@@ -295,12 +295,12 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
                     if(var1==null){
                         continue;
                     }
-                    Block var15 = GameData.blockRegistry.get(var1);
-                    if(var15!=null){
+                    Block var15 = GameData.getBlockRegistry().getObject(var1);
+                    if(var15!=GameData.getBlockRegistry().getDefaultValue()){
                         loot.add(new DunLootItem(var15, var2, var3, var8, var10, var4, var5, var6, var7, var7));
                     }else{
-                        Item var20 = GameData.itemRegistry.get(var1);
-                        if(var20!=null){
+                        Item var20 = GameData.getItemRegistry().getObject(var1);
+                        if(var20!=GameData.getItemRegistry().getDefaultValue()){
                             loot.add(new DunLootItem(var20, var2, var3, var8, var10, var4, var5, var6, var7, var7));
                         }
                     }

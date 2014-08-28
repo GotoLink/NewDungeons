@@ -37,7 +37,6 @@
     <orderEntry type="library" exported="" name="Gradle: log4j-core-2.0-beta9" level="project" />
     <orderEntry type="library" exported="" name="Gradle: netty-all-4.0.10.Final" level="project" />
     <orderEntry type="library" exported="" name="Gradle: jinput-platform-2.0.5-natives-linux" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: forgeSrc-1.7.10-10.13.0.1184" level="project" />
     <orderEntry type="library" exported="" name="Gradle: akka-actor_2.11-2.3.3" level="project" />
     <orderEntry type="library" exported="" name="Gradle: config-1.2.1" level="project" />
     <orderEntry type="library" exported="" name="Gradle: scala-actors-migration_2.11-1.1.0" level="project" />
@@ -60,8 +59,6 @@
     <orderEntry type="library" exported="" name="Gradle: lwjgl_util-2.9.1" level="project" />
     <orderEntry type="library" exported="" name="Gradle: twitch-5.16" level="project" />
     <orderEntry type="library" exported="" name="Gradle: scala-actors-2.11.0" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: scala-xml_2.11-1.0.2" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: scala-parser-combinators_2.11-1.0.1" level="project" />
     <orderEntry type="library" exported="" name="Gradle: twitch-platform-5.16-natives-windows-32" level="project" />
     <orderEntry type="library" exported="" name="Gradle: twitch-platform-5.16-natives-windows-64" level="project" />
     <orderEntry type="library" exported="" name="Gradle: twitch-platform-5.16-natives-osx" level="project" />
@@ -73,6 +70,9 @@
     <orderEntry type="library" exported="" name="Gradle: guava-17.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: commons-lang3-3.3.2" level="project" />
     <orderEntry type="library" exported="" scope="RUNTIME" name="Gradle: D__Modding_Caches__gradle_caches_minecraft_net_minecraftforge_forge_1_7_10_10_13_0_1184_start" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: scala-parser-combinators_2.11-1.0.1" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: scala-xml_2.11-1.0.2" level="project" />
+    <orderEntry type="library" name="Gradle: forgeSrc-1.7.10-10.13.0.1184" level="project" />
   </component>
 </module>
 
