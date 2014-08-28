@@ -1,0 +1,6 @@
+﻿
+tile.dimTorch.name=Тусклый факел
+tile.tripWireSourcePlayer.name=Специальная растяжка для игрока
+tile.pressurePlatePlayer.name=Специальная нажимная плита для игрока
+dungeon.done=Подземелье успешно создано!
+commands.makedungeon.usage=/makeDungeon <x> <y> <z> [sizeX] [sizeZ]
