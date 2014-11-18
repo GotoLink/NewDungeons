@@ -4,6 +4,7 @@ import java.util.Random;
 
 import net.minecraft.world.World;
 
+@SuppressWarnings("UnusedDeclaration")
 public class Dun3Node {
 	private final int x;
 	private final int y;

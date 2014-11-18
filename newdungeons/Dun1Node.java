@@ -9,7 +9,8 @@ public class Dun1Node {
 	public final int y;
 	public final int z;
 
-	Dun1Node() {
+	@SuppressWarnings("UnusedDeclaration")
+    Dun1Node() {
 		this(0, 0, 0, 0, 0, 0, 0);
 	}
 

@@ -8,6 +8,7 @@ import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemPotion;
 import net.minecraft.item.ItemStack;
+import net.minecraft.potion.PotionEffect;
 import net.minecraft.potion.PotionHelper;
 
 public class DunLootItem {
@@ -17,7 +18,7 @@ public class DunLootItem {
 	final double rareity;
 	final double value;
 	final int minDanger;
-	private HashMap idEffectNameMap;
+	private HashMap<Integer,List<PotionEffect>> idEffectNameMap;
 	final int maxEnchatLev;
 	final int enchatProb;
 	final int damigeValueMin;
@@ -30,7 +31,7 @@ public class DunLootItem {
 		this.rareity = var4;
 		this.value = var6;
 		this.minDanger = var8;
-		this.idEffectNameMap = new HashMap();
+		this.idEffectNameMap = new HashMap<Integer, List<PotionEffect>>();
 		this.maxEnchatLev = var9;
 		this.enchatProb = var10;
 		this.damigeValueMin = var11;
@@ -113,10 +114,11 @@ public class DunLootItem {
 		return this.item instanceof Block ? ((Block) this.item).getUnlocalizedName() : (this.item instanceof Item ? ((Item) this.item).getUnlocalizedName() : null);
 	}
 
-	public List getEffectNamesFromDamage(int var1) {
-		List var2 = (List) this.idEffectNameMap.get(Integer.valueOf(var1));
+	@SuppressWarnings("unchecked")
+    public List getEffectNamesFromDamage(int var1) {
+		List<PotionEffect> var2 = this.idEffectNameMap.get(Integer.valueOf(var1));
 		if (var2 == null) {
-			var2 = PotionHelper.getPotionEffects(var1, false);
+			var2 = (List<PotionEffect>) PotionHelper.getPotionEffects(var1, false);
 			this.idEffectNameMap.put(var1, var2);
 		}
 		return var2;
