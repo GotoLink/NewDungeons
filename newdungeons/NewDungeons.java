@@ -2,12 +2,14 @@ package newdungeons;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
 
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.network.NetworkCheckHandler;
 import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -120,7 +122,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
                                 "https://raw.github.com/GotoLink/NewDungeons/master/update.xml",
                                 "https://raw.github.com/GotoLink/NewDungeons/master/changelog.md"
                         );
-                    } catch (Throwable e) {
+                    } catch (Throwable ignored) {
                     }
                 }
             }
@@ -129,6 +131,11 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
             GameRegistry.addShapelessRecipe(new ItemStack(Blocks.torch, 8), Items.coal, Items.stick, modDimTorch);
         }
 	}
+
+    @NetworkCheckHandler
+    public boolean checkRemote(Map<String,String> mods, Side remoteParty){
+        return ID_COMPATIBILITY || mods.containsKey("newdungeons");
+    }
 
     @SideOnly(Side.CLIENT)
     public void setModTripWireRender(){
