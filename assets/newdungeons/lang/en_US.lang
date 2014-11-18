@@ -1,5 +1,6 @@
 ﻿
 tile.dimTorch.name=Dim Torch
+tile.tripWirePlayer.name=Player Special Tripwire
 tile.tripWireSourcePlayer.name=Player Special Tripwire Hook
 tile.pressurePlatePlayer.name=Player Special Pressure Plate
 dungeon.done=NewDungeon successfully generated!
