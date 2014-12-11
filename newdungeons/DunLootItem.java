@@ -1,15 +1,15 @@
 package newdungeons;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
-
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemPotion;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.potion.PotionHelper;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 
 public class DunLootItem {
 	final Object item;

@@ -1,13 +1,13 @@
 package newdungeons;
 
-import java.util.Random;
-
 import net.minecraft.block.BlockPressurePlate;
 import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 
-public class ModPressurePlate extends BlockPressurePlate {
+import java.util.Random;
+
+public final class ModPressurePlate extends BlockPressurePlate {
 	protected ModPressurePlate(String var2, Material var4) {
 		super(var2, var4, Sensitivity.players);
 	}

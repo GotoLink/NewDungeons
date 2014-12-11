@@ -1,11 +1,11 @@
 package newdungeons;
 
-import java.util.Random;
-
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
-public class DunLootPotion extends DunLootItem {
+import java.util.Random;
+
+public final class DunLootPotion extends DunLootItem {
 	final int potionID;
 
 	DunLootPotion(Item var1, int var2, int var3, double var4, double var6, int var8, int var9) {

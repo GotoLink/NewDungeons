@@ -10,7 +10,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
-public class ModBlockTripWire extends BlockTripWire {
+public final class ModBlockTripWire extends BlockTripWire {
     public static int renderID;
 	public ModBlockTripWire() {
 		super();

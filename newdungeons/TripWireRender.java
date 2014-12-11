@@ -7,7 +7,10 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 
-public class TripWireRender implements ISimpleBlockRenderingHandler{
+public final class TripWireRender implements ISimpleBlockRenderingHandler{
+    public static final ISimpleBlockRenderingHandler INSTANCE = new TripWireRender();
+    private TripWireRender(){}
+
     @Override
     public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
         

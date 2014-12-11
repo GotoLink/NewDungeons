@@ -1,16 +1,17 @@
 package newdungeons;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Random;
-
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.IWorldGenerator;
+import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.network.NetworkCheckHandler;
 import cpw.mods.fml.common.registry.GameData;
+import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -26,22 +27,12 @@ import net.minecraft.tileentity.TileEntityDispenser;
 import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.BiomeGenBase;
-import net.minecraft.world.biome.BiomeGenDesert;
-import net.minecraft.world.biome.BiomeGenForest;
-import net.minecraft.world.biome.BiomeGenJungle;
-import net.minecraft.world.biome.BiomeGenOcean;
-import net.minecraft.world.biome.BiomeGenSwamp;
-import net.minecraft.world.biome.BiomeGenTaiga;
+import net.minecraft.world.biome.*;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.config.Configuration;
-import cpw.mods.fml.common.IWorldGenerator;
-import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.Mod.EventHandler;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.registry.GameRegistry;
+
+import java.util.*;
 
 @Mod(modid = "newdungeons", name = "New Dungeons", useMetadata = true)
 public final class NewDungeons extends CommandBase implements IWorldGenerator {
@@ -140,7 +131,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
     @SideOnly(Side.CLIENT)
     public void setModTripWireRender(){
         ModBlockTripWire.renderID = RenderingRegistry.getNextAvailableRenderId();
-        RenderingRegistry.registerBlockHandler(ModBlockTripWire.renderID, new TripWireRender());
+        RenderingRegistry.registerBlockHandler(ModBlockTripWire.renderID, TripWireRender.INSTANCE);
     }
 
 	public static void genDun1(World var0, Random var1, int var2, int var3, BiomeGenBase biome) {
@@ -446,7 +437,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 				try {
 					biomes.remove(Integer.parseInt(txt));
 				} catch (NumberFormatException e) {
-					for (BiomeGenBase biome : BiomeDictionary.getBiomesForType(BiomeDictionary.Type.valueOf(txt.toUpperCase()))) {
+					for (BiomeGenBase biome : BiomeDictionary.getBiomesForType(BiomeDictionary.Type.valueOf(txt.toUpperCase(Locale.ENGLISH)))) {
 						biomes.remove(biome.biomeID);
 					}
 				}
@@ -454,7 +445,7 @@ public final class NewDungeons extends CommandBase implements IWorldGenerator {
 				try {
 					biomes.add(Integer.parseInt(txt));
 				} catch (NumberFormatException e) {
-					for (BiomeGenBase biome : BiomeDictionary.getBiomesForType(BiomeDictionary.Type.valueOf(txt.toUpperCase()))) {
+					for (BiomeGenBase biome : BiomeDictionary.getBiomesForType(BiomeDictionary.Type.valueOf(txt.toUpperCase(Locale.ENGLISH)))) {
 						biomes.add(biome.biomeID);
 					}
 				}

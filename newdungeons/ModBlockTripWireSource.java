@@ -1,14 +1,14 @@
 package newdungeons;
 
-import static net.minecraftforge.common.util.ForgeDirection.UP;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockTripWireHook;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.Direction;
 import net.minecraft.world.World;
 
-public class ModBlockTripWireSource extends BlockTripWireHook {
+import static net.minecraftforge.common.util.ForgeDirection.UP;
+
+public final class ModBlockTripWireSource extends BlockTripWireHook {
 
 	protected ModBlockTripWireSource() {
 		super();

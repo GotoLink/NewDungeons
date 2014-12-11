@@ -1,6 +1,6 @@
 package newdungeons;
 
-public class Dun1Node {
+public final class Dun1Node {
 	public final int wp;
 	public final int wn;
 	public final int lp;

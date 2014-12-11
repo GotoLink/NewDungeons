@@ -1,11 +1,11 @@
 package newdungeons;
 
-import java.util.Random;
-
 import net.minecraft.world.World;
 
+import java.util.Random;
+
 @SuppressWarnings("UnusedDeclaration")
-public class Dun3Node {
+public final class Dun3Node {
 	private final int x;
 	private final int y;
 	private final int z;

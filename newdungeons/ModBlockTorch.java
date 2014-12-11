@@ -7,7 +7,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.world.World;
 
-public class ModBlockTorch extends BlockTorch {
+public final class ModBlockTorch extends BlockTorch {
 	protected ModBlockTorch() {
 		super();
 	}
